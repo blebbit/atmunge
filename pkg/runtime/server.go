@@ -48,7 +48,9 @@ func (r *Runtime) Info(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// path component is requested account
-		reqAcct := strings.ToLower(strings.TrimPrefix(req.URL.Path, "/"))
+		reqAcct := strings.ToLower(strings.TrimPrefix(req.URL.Path, "/info/"))
+
+		// return respond.String(reqAcct)
 
 		var entry plcdb.AccountInfo
 		if strings.HasPrefix(reqAcct, "did:") {
@@ -63,12 +65,12 @@ func (r *Runtime) Info(w http.ResponseWriter, req *http.Request) {
 			err := r.db.Model(&entry).Where("handle = ?", reqAcct).Limit(1).Take(&entry).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				updateMetrics(http.StatusNotFound)
-				return respond.NotFound("unknown DID")
+				return respond.NotFound("unknown handle")
 			}
 		}
 
 		updateMetrics(http.StatusOK)
-		return respond.JSON(r)
+		return respond.JSON(entry)
 	})(w, req)
 }
 

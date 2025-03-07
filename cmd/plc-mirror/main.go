@@ -81,8 +81,8 @@ func runMain(ctx context.Context) error {
 	// setup the server routes
 	http.HandleFunc("/ready", r.Ready)
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/info", r.Info)
-	http.HandleFunc("/", r.DidDoc)
+	http.HandleFunc("/info/{acct}", r.Info)
+	http.HandleFunc("/{did}", r.DidDoc)
 
 	// start mirror
 	go r.StartMirror()
