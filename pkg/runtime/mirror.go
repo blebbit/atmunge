@@ -57,6 +57,7 @@ func (r *Runtime) backfillMirror() error {
 
 	u := *r.upstream
 
+	// loop to get 1000 records at a time until we are caught up
 	for {
 		params := u.Query()
 		params.Set("count", "1000")
@@ -90,6 +91,7 @@ func (r *Runtime) backfillMirror() error {
 
 		var lastTimestamp time.Time
 
+		// decode each jsonl line
 		for {
 			var entry plc.OperationLogEntry
 			err := decoder.Decode(&entry)
@@ -100,12 +102,11 @@ func (r *Runtime) backfillMirror() error {
 				return fmt.Errorf("parsing log entry: %w", err)
 			}
 
-			cursor = entry.CreatedAt
+			// turn entry into DB types
 			row := plcdb.PLCLogEntryFromOp(entry)
-			newEntries = append(newEntries, row)
 			info := plcdb.AccountInfoFromOp(entry)
-			mapInfos[info.DID] = info
 
+			// update lastestTimestamp / cursor
 			t, err := time.Parse(time.RFC3339, row.PLCTimestamp)
 			if err == nil {
 				lastEventTimestamp.Set(float64(t.Unix()))
@@ -113,14 +114,27 @@ func (r *Runtime) backfillMirror() error {
 			} else {
 				log.Warn().Msgf("Failed to parse %q: %s", row.PLCTimestamp, err)
 			}
+			cursor = entry.CreatedAt
+
+			// skip bogus records
+			if info.PDS == "https://uwu" {
+				continue
+			}
+
+			// TODO: validate _atproto.<handle> points at same DID
+			// ... or be lazy about it (probably better choice) ...
+
+			// add to tmp collections
+			mapInfos[info.DID] = info
+			newEntries = append(newEntries, row)
 		}
 
-		// run until we are caught up
+		// check if we are caught up, end inf loop if so
 		if len(newEntries) == 0 || cursor == oldCursor {
 			break
 		}
 
-		// write PLC Log
+		// write PLC Log rows
 		err = r.db.Clauses(
 			clause.OnConflict{
 				Columns:   []clause.Column{{Name: "did"}, {Name: "cid"}},
@@ -131,8 +145,7 @@ func (r *Runtime) backfillMirror() error {
 			return fmt.Errorf("inserting log entry into database: %w", err)
 		}
 
-		// write Acct Info
-
+		// write Acct Info rows
 		newInfos := make([]plcdb.AccountInfo, 0, len(mapInfos))
 		for _, v := range mapInfos {
 			newInfos = append(newInfos, v)
@@ -144,9 +157,10 @@ func (r *Runtime) backfillMirror() error {
 			},
 		).Create(newInfos).Error
 		if err != nil {
-			return fmt.Errorf("inserting log entry into database: %w", err)
+			return fmt.Errorf("inserting acct info into database: %w", err)
 		}
 
+		// update tiemstamp & rate-limiter
 		if !lastTimestamp.IsZero() {
 			r.mu.Lock()
 			r.lastRecordTimestamp = lastTimestamp

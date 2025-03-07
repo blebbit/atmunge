@@ -23,15 +23,34 @@ Several extra endpoints are provided for convenience.
 
 ## Usage
 
+### Public Server
+
+We host a public instance of this server at `https://plc.blebbit.dev`.
+Currently it has no rate limits, but this may change if there is abuse or excessive use.
+
+### Self Hosting
+
 You can directly replace `https://plc.directory` with a URL to the exposed port
 (11004 by default).
 
 Note that on the first run it will take quite a few hours to download everything,
 and the mirror with respond with 500 if it's not caught up yet.
 
-As of March 2025, the DB is around:
+### Snapshots
 
-- 45G in postgres
-- 7G as a backup
+We also provide direct downloads for the `pg_dump` to shorten the backfill time
+or if you want to do anything else with the data once it is in Postgresql.
 
-... record count
+https://public.blebbit.dev/plc/snapshot/plc-20250306.sql.zst
+
+As of early March 2025, the DB is around
+
+Size:
+
+- postgres: 45G
+- snapshot: 
+
+Records:
+
+- plc ops: 
+- did rows:
