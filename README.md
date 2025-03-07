@@ -54,3 +54,10 @@ Records:
 
 - plc ops: 
 - did rows:
+
+
+
+## Notes
+
+consider returning `handle.invalid` when handle does not match doc
+- https://docs.bsky.app/docs/api/com-atproto-identity-resolve-identity
