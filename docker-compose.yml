@@ -2,19 +2,20 @@ services:
   postgres:
     image: "postgres:16"
     volumes:
-      - "${DATA_DIR:?specify data dir in .env file}/postgres:/var/lib/postgresql/data:rw"
+      - "./data/plc/postgres:/var/lib/postgresql/data:rw"
     restart: always
-    healthcheck:
-      test: pg_isready -h localhost -U postgres
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 1h
-      start_interval: 3s
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    user: 501:501
+    # healthcheck:
+    #   test: pg_isready -h localhost -U postgres
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 1h
+    #   start_interval: 3s
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
     environment:
-      POSTGRES_DB: bluesky
+      POSTGRES_DB: plc
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?specify password in .env file}"
     stop_grace_period: 24h
 
@@ -22,10 +23,10 @@ services:
     build:
       context: .
       dockerfile: cmd/plc-mirror/Dockerfile
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
     restart: always
-    image: uabluerail/plc-mirror
+    image: blebbit/plc-mirror
     deploy:
       resources:
         limits:
@@ -34,17 +35,19 @@ services:
       - postgres:db
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
     environment:
       PLC_METRICS_PORT: '8080'
-      PLC_POSTGRES_URL: "postgres://postgres:${POSTGRES_PASSWORD}@db/bluesky?sslmode=disable"
+      PLC_POSTGRES_URL: "postgres://postgres:${POSTGRES_PASSWORD}@db/plc?sslmode=disable"
     ports:
       - "0.0.0.0:11004:8080"
     command: [ "--log-level=0" ]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 30
-      start_period: 12h
-      start_interval: 15s
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/ready"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 30
+    #   start_period: 12h
+    #   start_interval: 15s
+
+# pg_dump -U postgres -Z zstd bluesky > bluesky.sql

@@ -17,17 +17,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
-	"bsky.watch/plc-mirror/util/gormzerolog"
+	plcdb "github.com/blebbit/plc-mirror/pkg/db"
+	plcrt "github.com/blebbit/plc-mirror/pkg/runtime"
 )
 
 type Config struct {
@@ -40,73 +36,6 @@ type Config struct {
 }
 
 var config Config
-
-func runMain(ctx context.Context) error {
-	ctx = setupLogging(ctx)
-	log := zerolog.Ctx(ctx)
-	log.Debug().Msgf("Starting up...")
-	dbCfg, err := pgxpool.ParseConfig(config.DBUrl)
-	if err != nil {
-		return fmt.Errorf("parsing DB URL: %w", err)
-	}
-	dbCfg.MaxConns = 1024
-	dbCfg.MinConns = 10
-	dbCfg.MaxConnLifetime = 6 * time.Hour
-	conn, err := pgxpool.NewWithConfig(ctx, dbCfg)
-	if err != nil {
-		return fmt.Errorf("connecting to postgres: %w", err)
-	}
-
-	sqldb := stdlib.OpenDBFromPool(conn)
-
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: sqldb,
-	}), &gorm.Config{
-		Logger: gormzerolog.New(&logger.Config{
-			SlowThreshold:             1 * time.Second,
-			IgnoreRecordNotFoundError: true,
-		}, nil),
-	})
-	if err != nil {
-		return fmt.Errorf("connecting to the database: %w", err)
-	}
-	log.Debug().Msgf("DB connection established")
-
-	if err := db.AutoMigrate(&PLCLogEntry{}); err != nil {
-		return fmt.Errorf("auto-migrating DB schema: %w", err)
-	}
-	log.Debug().Msgf("DB schema updated")
-
-	mirror, err := NewMirror(ctx, config.Upstream, db)
-	if err != nil {
-		return fmt.Errorf("failed to create mirroring worker: %w", err)
-	}
-	if err := mirror.Start(ctx); err != nil {
-		return fmt.Errorf("failed to start mirroring worker: %w", err)
-	}
-
-	server, err := NewServer(ctx, db, mirror)
-	if err != nil {
-		return fmt.Errorf("failed to create server: %w", err)
-	}
-	http.Handle("/", server)
-	http.HandleFunc("/ready", server.Ready)
-
-	log.Info().Msgf("Starting HTTP listener on %q...", config.MetricsPort)
-	http.Handle("/metrics", promhttp.Handler())
-	srv := &http.Server{Addr: fmt.Sprintf(":%s", config.MetricsPort)}
-	errCh := make(chan error)
-	go func() {
-		errCh <- srv.ListenAndServe()
-	}()
-	select {
-	case <-ctx.Done():
-		if err := srv.Shutdown(context.Background()); err != nil {
-			return fmt.Errorf("HTTP server shutdown failed: %w", err)
-		}
-	}
-	return <-errCh
-}
 
 func main() {
 	flag.StringVar(&config.LogFile, "log", "", "Path to the log file. If empty, will log to stderr")
@@ -124,6 +53,54 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func runMain(ctx context.Context) error {
+	ctx = setupLogging(ctx)
+	log := zerolog.Ctx(ctx)
+	log.Debug().Msgf("Starting up...")
+
+	// db setup
+	db, err := plcdb.GetClient(config.DBUrl, ctx)
+	if err != nil {
+		return err
+	}
+	log.Debug().Msgf("DB connection established")
+
+	err = plcdb.MigrateModels(db)
+	if err != nil {
+		return err
+	}
+	log.Debug().Msgf("DB schema updated")
+
+	r, err := plcrt.NewRuntime(ctx, db)
+	if err != nil {
+		return fmt.Errorf("failed to create runtime: %w", err)
+	}
+
+	// setup the server routes
+	http.HandleFunc("/ready", r.Ready)
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/info", r.Info)
+	http.HandleFunc("/", r.DidDoc)
+
+	// start mirror
+	go r.StartMirror()
+
+	// start server
+	log.Info().Msgf("Starting HTTP listener on %q...", config.MetricsPort)
+	srv := &http.Server{Addr: fmt.Sprintf(":%s", config.MetricsPort)}
+	errCh := make(chan error)
+	go func() {
+		errCh <- srv.ListenAndServe()
+	}()
+	select {
+	case <-ctx.Done():
+		if err := srv.Shutdown(context.Background()); err != nil {
+			return fmt.Errorf("HTTP server shutdown failed: %w", err)
+		}
+	}
+	return <-errCh
 }
 
 func setupLogging(ctx context.Context) context.Context {

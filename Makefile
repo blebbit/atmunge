@@ -27,3 +27,9 @@ status:
 
 logs:
 	@docker compose logs -f -n 50
+
+watch:
+	watch -n 2 make watch.cmds
+watch.cmds:
+	@du -hd .
+	@docker compose logs plc -n 2

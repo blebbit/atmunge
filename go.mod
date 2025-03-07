@@ -1,4 +1,4 @@
-module bsky.watch/plc-mirror
+module github.com/blebbit/plc-mirror
 
 go 1.22
 

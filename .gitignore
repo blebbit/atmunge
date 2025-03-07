@@ -5,3 +5,5 @@ go.work*
 *.log
 csv_export.tgz
 *.override.yml
+/data
+/plc-mirror
