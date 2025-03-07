@@ -39,7 +39,7 @@ func GetClient(dbUrl string, ctx context.Context) (*gorm.DB, error) {
 		Conn: sqldb,
 	}), &gorm.Config{
 		Logger: gormzerolog.New(&logger.Config{
-			SlowThreshold:             2 * time.Second,
+			SlowThreshold:             3 * time.Second,
 			IgnoreRecordNotFoundError: true,
 		}, nil),
 	})
