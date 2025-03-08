@@ -47,13 +47,13 @@ As of early March 2025, the DB is around
 
 Size:
 
-- postgres: 45G
-- snapshot: 
+- postgres: 55G
+- snapshot: 8G
 
 Records:
 
-- plc ops: 
-- did rows:
+- plc ops:  38M
+- did rows: 34M
 
 
 
@@ -61,3 +61,6 @@ Records:
 
 consider returning `handle.invalid` when handle does not match doc
 - https://docs.bsky.app/docs/api/com-atproto-identity-resolve-identity
+
+Look into index performance and possible removing second table
+- https://medium.com/geekculture/postgres-jsonb-usage-and-performance-analysis-cdbd1242a018

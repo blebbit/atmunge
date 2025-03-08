@@ -69,8 +69,10 @@ func (r *Runtime) Info(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		view := plcdb.AccountViewFromInfo(&entry)
+
 		updateMetrics(http.StatusOK)
-		return respond.JSON(entry)
+		return respond.JSON(view)
 	})(w, req)
 }
 
