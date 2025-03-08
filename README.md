@@ -41,7 +41,7 @@ and the mirror with respond with 500 if it's not caught up yet.
 We also provide direct downloads for the `pg_dump` to shorten the backfill time
 or if you want to do anything else with the data once it is in Postgresql.
 
-https://public.blebbit.dev/plc/snapshot/plc-20250306.sql.zst
+https://public.blebbit.dev/plc/snapshot/plc-20250307.sql.zst
 
 As of early March 2025, the DB is around
 
@@ -52,7 +52,7 @@ Size:
 
 Records:
 
-- plc ops:  38M
+- plc rows: 38M
 - did rows: 34M
 
 
