@@ -40,7 +40,7 @@ type AccountInfo struct {
 	PLCTimestamp string `gorm:"column:plc_timestamp;index:did_timestamp,sort:desc;index:,sort:desc"`
 
 	PDS    string `gorm:"column:pds"`
-	Handle string `gorm:"column:handle;uniqueIndex:"`
+	Handle string `gorm:"column:handle;uniqueIndex:idx_handle"`
 
 	HandleMatch bool      `gorm:"handle_match"`
 	LastChecked time.Time // when did we last check if the handle points at the DID?
