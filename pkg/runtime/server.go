@@ -180,7 +180,7 @@ func (r *Runtime) DidDoc(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		updateMetrics(http.StatusOK)
-		return respond.JSON(r)
+		return respond.JSON(doc)
 
 	})(w, req)
 }
