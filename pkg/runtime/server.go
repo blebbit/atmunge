@@ -76,6 +76,40 @@ func (r *Runtime) Info(w http.ResponseWriter, req *http.Request) {
 	})(w, req)
 }
 
+func (r *Runtime) Autocomplete(w http.ResponseWriter, req *http.Request) {
+	convreq.Wrap(func(ctx context.Context) convreq.HttpResponse {
+		start := time.Now()
+		updateMetrics := func(c int) {
+			requestCount.WithLabelValues(fmt.Sprint(c)).Inc()
+			requestLatency.WithLabelValues(fmt.Sprint(c)).Observe(float64(time.Since(start)) / float64(time.Millisecond))
+		}
+
+		// path component is requested account
+		reqAcct := strings.ToLower(strings.TrimPrefix(req.URL.Path, "/autocomplete/"))
+
+		// return respond.String(reqAcct)
+
+		var entries []plcdb.AccountInfo
+		// assume a handle (todo, profile names, preference following / graph)
+		res := r.db.Model(&plcdb.AccountInfo{}).Where("handle LIKE ?", reqAcct+"%").Limit(10).Find(&entries)
+		fmt.Println(res)
+		err := res.Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			updateMetrics(http.StatusNotFound)
+			return respond.NotFound("unknown handle")
+		}
+
+		var views []plcdb.AccountInfoView
+		for _, entry := range entries {
+			view := plcdb.AccountViewFromInfo(&entry)
+			views = append(views, view)
+		}
+
+		updateMetrics(http.StatusOK)
+		return respond.JSON(views)
+	})(w, req)
+}
+
 func (r *Runtime) DidDoc(w http.ResponseWriter, req *http.Request) {
 	convreq.Wrap(func(ctx context.Context) convreq.HttpResponse {
 

@@ -81,6 +81,7 @@ func runMain(ctx context.Context) error {
 	// setup the server routes
 	http.HandleFunc("/ready", r.Ready)
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/autocomplete/{acct}", r.Autocomplete)
 	http.HandleFunc("/info/{acct}", r.Info)
 	http.HandleFunc("/{did}", r.DidDoc)
 
