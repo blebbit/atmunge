@@ -64,3 +64,11 @@ consider returning `handle.invalid` when handle does not match doc
 
 Look into index performance and possible removing second table
 - https://medium.com/geekculture/postgres-jsonb-usage-and-performance-analysis-cdbd1242a018
+
+
+Autocomplete needed:
+
+```sql
+CREATE EXTENSION pg_trgm;
+CREATE INDEX account_infos_handle_gin_trgm_idx  ON account_infos USING gin  (handle gin_trgm_ops);
+```

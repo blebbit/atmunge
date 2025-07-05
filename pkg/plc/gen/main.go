@@ -5,7 +5,7 @@ import (
 
 	typegen "github.com/whyrusleeping/cbor-gen"
 
-	"github.com/blebbit/plc-mirror/pkg/plc"
+	"github.com/blebbit/at-mirror/pkg/plc"
 )
 
 func main() {

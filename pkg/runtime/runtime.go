@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/http"
 	"net/url"
 	"sync"
 	"time"
@@ -12,48 +11,45 @@ import (
 	"golang.org/x/time/rate"
 	"gorm.io/gorm"
 
-	plcdb "github.com/blebbit/plc-mirror/pkg/db"
+	// "github.com/blebbit/at-mirror/pkg/config"
+	plcdb "github.com/blebbit/at-mirror/pkg/db"
 )
 
 const (
 	// plc.directory settings
 	// Current rate limit is `500 per five minutes`, lets stay a bit under it.
-	defaultRateLimit  = rate.Limit(450.0 / 300)
+	defaultRateLimit  = rate.Limit(450.0 / 300.0)
 	caughtUpRateLimit = rate.Limit(0.2)
 	caughtUpThreshold = 10 * time.Minute
 	maxDelay          = 5 * time.Minute
 )
 
 type Runtime struct {
-	ctx context.Context
-	db  *gorm.DB
+	// shared resources
+	Ctx context.Context
+	// Cfg *config.Config
+	DB *gorm.DB
 
-	MaxDelay time.Duration
-
-	upstream *url.URL
-	limiter  *rate.Limiter
-
-	mu                      sync.RWMutex
+	// PLC mirror fields
+	upstream                *url.URL
+	MaxDelay                time.Duration
+	limiter                 *rate.Limiter
+	plcMutex                sync.RWMutex
 	lastCompletionTimestamp time.Time
 	lastRecordTimestamp     time.Time
 
-	handler http.HandlerFunc
+	// Account sync fields
+	acctMutex            sync.RWMutex
+	lastAccountId        int
+	lastAccountTimestamp time.Time
 }
 
 func NewRuntime(ctx context.Context, db *gorm.DB) (*Runtime, error) {
-	u, err := url.Parse("https://plc.directory")
-	if err != nil {
-		return nil, err
-	}
-	u.Path, err = url.JoinPath(u.Path, "export")
-	if err != nil {
-		return nil, err
-	}
 
 	r := &Runtime{
-		ctx:      ctx,
-		db:       db,
-		upstream: u,
+		Ctx:      ctx,
+		DB:       db,
+		upstream: plcUrl(),
 		limiter:  rate.NewLimiter(defaultRateLimit, 4),
 		MaxDelay: maxDelay,
 	}
@@ -73,21 +69,21 @@ func (r *Runtime) updateRateLimit(lastRecordTimestamp time.Time) {
 }
 
 func (r *Runtime) LastCompletion() time.Time {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	r.plcMutex.RLock()
+	defer r.plcMutex.RUnlock()
 	return r.lastCompletionTimestamp
 }
 
 func (r *Runtime) LastRecordTimestamp(ctx context.Context) (time.Time, error) {
-	r.mu.RLock()
+	r.plcMutex.RLock()
 	t := r.lastRecordTimestamp
-	r.mu.RUnlock()
+	r.plcMutex.RUnlock()
 	if !t.IsZero() {
 		return t, nil
 	}
 
 	ts := ""
-	err := r.db.WithContext(ctx).Model(&plcdb.PLCLogEntry{}).Select("plc_timestamp").Order("plc_timestamp desc").Limit(1).Take(&ts).Error
+	err := r.DB.WithContext(ctx).Model(&plcdb.PLCLogEntry{}).Select("plc_timestamp").Order("plc_timestamp desc").Limit(1).Take(&ts).Error
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -96,8 +92,8 @@ func (r *Runtime) LastRecordTimestamp(ctx context.Context) (time.Time, error) {
 		return time.Time{}, fmt.Errorf("parsing timestamp %q: %w", ts, err)
 	}
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	r.plcMutex.Lock()
+	defer r.plcMutex.Unlock()
 	if r.lastRecordTimestamp.IsZero() {
 		r.lastRecordTimestamp = dbTimestamp
 	}

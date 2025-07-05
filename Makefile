@@ -22,6 +22,9 @@ down:
 start-db: .env
 	@docker compose up -d postgres
 
+psql:
+	docker exec -it at-mirror-postgres-1 psql -U postgres -d plc
+
 status:
 	@docker compose stats
 

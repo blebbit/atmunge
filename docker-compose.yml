@@ -5,13 +5,13 @@ services:
       - "./data/plc/postgres:/var/lib/postgresql/data:rw"
     restart: always
     user: 501:501
-    healthcheck:
-      test: pg_isready -h localhost -U postgres
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 1h
-      start_interval: 3s
+    # healthcheck:
+    #   test: pg_isready -h localhost -U postgres
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 1h
+    #   start_interval: 3s
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -19,14 +19,14 @@ services:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?specify password in .env file}"
     stop_grace_period: 24h
 
-  plc:
+  server:
     build:
       context: .
-      dockerfile: cmd/plc-mirror/Dockerfile
+      dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
-    image: blebbit/plc-mirror
+    image: blebbit/at-mirror
     deploy:
       resources:
         limits:
@@ -37,17 +37,17 @@ services:
       postgres:
         condition: service_started
     environment:
-      PLC_METRICS_PORT: '8080'
+      PLC_METRICS_PORT: '1323'
       PLC_POSTGRES_URL: "postgres://postgres:${POSTGRES_PASSWORD}@db/plc?sslmode=disable"
     ports:
-      - "0.0.0.0:11004:8080"
-    command: [ "--log-level=0" ]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 30
-      start_period: 12h
-      start_interval: 15s
+      - "0.0.0.0:11004:1323"
+    command: [ "--log-level=0", "--run-mirror=false" ]
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/ready"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 30
+    #   start_period: 12h
+    #   start_interval: 15s
 
 # pg_dump -U postgres -Z zstd plc > plc.sql.zst

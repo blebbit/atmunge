@@ -6,33 +6,35 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	plcdb "github.com/blebbit/plc-mirror/pkg/db"
-	"github.com/blebbit/plc-mirror/pkg/plc"
+	atdb "github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/at-mirror/pkg/plc"
 )
 
-func (r *Runtime) StartMirror() {
-	log := zerolog.Ctx(r.ctx).With().Str("module", "mirror").Logger()
+func (r *Runtime) StartPLCMirror() {
+	log := zerolog.Ctx(r.Ctx).With().Str("module", "plc").Logger()
 	for {
 		select {
-		case <-r.ctx.Done():
+		case <-r.Ctx.Done():
 			log.Info().Msgf("PLC mirror stopped")
 			return
 		default:
 			if err := r.backfillMirror(); err != nil {
-				if r.ctx.Err() == nil {
+				if r.Ctx.Err() == nil {
 					log.Error().Err(err).Msgf("Failed to get new log entries from PLC: %s", err)
 				}
 			} else {
 				now := time.Now()
-				r.mu.Lock()
+				r.plcMutex.Lock()
 				r.lastCompletionTimestamp = now
-				r.mu.Unlock()
+				r.plcMutex.Unlock()
 			}
 			time.Sleep(10 * time.Second)
 		}
@@ -40,10 +42,10 @@ func (r *Runtime) StartMirror() {
 }
 
 func (r *Runtime) backfillMirror() error {
-	log := zerolog.Ctx(r.ctx)
+	log := zerolog.Ctx(r.Ctx)
 
 	cursor := ""
-	err := r.db.Model(&plcdb.PLCLogEntry{}).Select("plc_timestamp").Order("plc_timestamp desc").Limit(1).Take(&cursor).Error
+	err := r.DB.Model(&atdb.PLCLogEntry{}).Select("plc_timestamp").Order("plc_timestamp desc").Limit(1).Take(&cursor).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return fmt.Errorf("failed to get the cursor: %w", err)
 	}
@@ -66,12 +68,12 @@ func (r *Runtime) backfillMirror() error {
 		}
 		u.RawQuery = params.Encode()
 
-		req, err := http.NewRequestWithContext(r.ctx, http.MethodGet, u.String(), nil)
+		req, err := http.NewRequestWithContext(r.Ctx, http.MethodGet, u.String(), nil)
 		if err != nil {
 			return fmt.Errorf("constructing request: %w", err)
 		}
 
-		_ = r.limiter.Wait(r.ctx)
+		_ = r.limiter.Wait(r.Ctx)
 		log.Info().Msgf("Listing PLC log entries with cursor %q...", cursor)
 		log.Debug().Msgf("Request URL: %s", u.String())
 		resp, err := http.DefaultClient.Do(req)
@@ -84,8 +86,8 @@ func (r *Runtime) backfillMirror() error {
 			return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 		}
 
-		newEntries := []plcdb.PLCLogEntry{}
-		mapInfos := map[string]plcdb.AccountInfo{}
+		newEntries := []atdb.PLCLogEntry{}
+		mapInfos := map[string]atdb.AccountInfo{}
 		decoder := json.NewDecoder(resp.Body)
 		oldCursor := cursor
 
@@ -102,9 +104,31 @@ func (r *Runtime) backfillMirror() error {
 				return fmt.Errorf("parsing log entry: %w", err)
 			}
 
+			// turn the entry into a PLC operation
+			var op plc.Op
+			switch v := entry.Operation.Value.(type) {
+			case plc.Op:
+				op = v
+			case plc.LegacyCreateOp:
+				op = v.AsUnsignedOp()
+			}
+
+			// skip entries that are not valid operations
+			if ok := validateOperation(entry, op); !ok {
+				continue
+			}
+
+			doc, err := plc.MakeDoc(entry, op)
+			if err != nil {
+				log.Error().Err(err).Msgf("Failed to create DID document for entry %s: %s", entry.CID, err)
+				continue
+			}
+			docJSON, err := json.Marshal(doc)
+			log.Debug().Msgf("DID Document for %s: %s", entry.DID, docJSON)
+
 			// turn entry into DB types
-			row := plcdb.PLCLogEntryFromOp(entry)
-			info := plcdb.AccountInfoFromOp(entry)
+			row := atdb.PLCLogEntryFromOp(entry)
+			info := atdb.AccountInfoFromOp(entry)
 
 			// update lastestTimestamp / cursor
 			t, err := time.Parse(time.RFC3339, row.PLCTimestamp)
@@ -115,11 +139,6 @@ func (r *Runtime) backfillMirror() error {
 				log.Warn().Msgf("Failed to parse %q: %s", row.PLCTimestamp, err)
 			}
 			cursor = entry.CreatedAt
-
-			// skip bogus records
-			if info.PDS == "https://uwu" {
-				continue
-			}
 
 			// TODO: validate _atproto.<handle> points at same DID
 			// ... or be lazy about it (probably better choice) ...
@@ -135,7 +154,7 @@ func (r *Runtime) backfillMirror() error {
 		}
 
 		// write PLC Log rows
-		err = r.db.Clauses(
+		err = r.DB.Clauses(
 			clause.OnConflict{
 				Columns:   []clause.Column{{Name: "did"}, {Name: "cid"}},
 				DoNothing: true,
@@ -146,11 +165,11 @@ func (r *Runtime) backfillMirror() error {
 		}
 
 		// write Acct Info rows
-		newInfos := make([]plcdb.AccountInfo, 0, len(mapInfos))
+		newInfos := make([]atdb.AccountInfo, 0, len(mapInfos))
 		for _, v := range mapInfos {
 			newInfos = append(newInfos, v)
 		}
-		err = r.db.Clauses(
+		err = r.DB.Clauses(
 			clause.OnConflict{
 				Columns:   []clause.Column{{Name: "did"}},
 				DoUpdates: clause.AssignmentColumns([]string{"plc_timestamp", "pds", "handle"}),
@@ -162,14 +181,47 @@ func (r *Runtime) backfillMirror() error {
 
 		// update tiemstamp & rate-limiter
 		if !lastTimestamp.IsZero() {
-			r.mu.Lock()
+			r.plcMutex.Lock()
 			r.lastRecordTimestamp = lastTimestamp
-			r.mu.Unlock()
+			r.plcMutex.Unlock()
 
 			r.updateRateLimit(lastTimestamp)
 		}
 
 		log.Info().Msgf("Got %d | %d log entries. New cursor: %q", len(newEntries), len(newInfos), cursor)
 	}
+
 	return nil
+}
+
+func validateOperation(entry plc.OperationLogEntry, op plc.Op) bool {
+
+	// check did
+	if entry.DID == "" {
+		return false
+	}
+
+	// check handle
+	if len(op.AlsoKnownAs) > 0 {
+		handle := strings.TrimPrefix(op.AlsoKnownAs[0], "at://")
+		// check if handle is a valid handle
+		if _, err := url.Parse(handle); err != nil {
+			return false
+		}
+	}
+
+	// check pds
+	if svc, ok := op.Services["atproto_pds"]; ok {
+		pds := svc.Endpoint
+		if _, err := url.Parse(pds); err != nil {
+			return false
+		}
+
+		// check some well-known bad values
+		switch pds {
+
+		}
+	}
+
+	return true
 }

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blebbit/plc-mirror/pkg/plc"
+	"github.com/blebbit/at-mirror/pkg/plc"
 )
 
 type ID uint // should be same as type of gorm.Model.ID
@@ -30,6 +30,16 @@ func PLCLogEntryFromOp(op plc.OperationLogEntry) PLCLogEntry {
 	}
 }
 
+func PLCLogEntryToOp(entry PLCLogEntry) plc.OperationLogEntry {
+	return plc.OperationLogEntry{
+		DID:       entry.DID,
+		CID:       entry.CID,
+		CreatedAt: entry.PLCTimestamp,
+		Nullified: entry.Nullified,
+		Operation: entry.Operation,
+	}
+}
+
 type AccountInfo struct {
 	ID        ID `gorm:"primarykey"`
 	CreatedAt time.Time
@@ -42,8 +52,15 @@ type AccountInfo struct {
 	PDS    string `gorm:"column:pds"`
 	Handle string `gorm:"column:handle;index:idx_handle"`
 
-	HandleMatch bool      `gorm:"handle_match"`
-	LastChecked time.Time // when did we last check if the handle points at the DID?
+	HandleMatch bool `gorm:"handle_match"`
+	// when did we last check if the handle points at the DID?
+	HandleMatchLastChecked time.Time
+
+	// collections
+	Collections any `gorm:"column:collections;type:JSONB;serializer:json"`
+
+	// extra info
+	Extra any `gorm:"column:extra;type:JSONB;serializer:json"`
 }
 
 func AccountInfoFromOp(entry plc.OperationLogEntry) AccountInfo {
