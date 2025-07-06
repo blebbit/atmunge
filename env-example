@@ -1,0 +1,5 @@
+ATMIRROR_POSTGRES_URL="postgres://atmirror:atmirror@localhost:5432/atmirror?sslmode=disable"
+ATMIRROR_PLC_FILTER=false
+ATMIRROR_PLC_FILTER_KEEP=true
+ATMIRROR_PLC_CONFLICT_UPDATE=false
+ATMIRROR_PLC_CONFLICT_KEEP=true
