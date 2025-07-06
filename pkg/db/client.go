@@ -63,3 +63,31 @@ func MigrateModels(db *gorm.DB) error {
 
 	return nil
 }
+
+func ClearTables(db *gorm.DB) error {
+	tables := []string{
+		"plc_log_entries",
+		"account_infos",
+	}
+	for _, table := range tables {
+		if res := db.Exec("DELETE FROM " + table); res.Error != nil {
+			fmt.Printf("clearing table %q: %s", table, res.Error)
+		}
+	}
+
+	return nil
+}
+
+func DropTables(db *gorm.DB) error {
+	tables := []string{
+		"plc_log_entries",
+		"account_infos",
+	}
+	for _, table := range tables {
+		if res := db.Exec("DROP TABLE IF EXISTS " + table); res.Error != nil {
+			fmt.Printf("dropping table %q: %s", table, res.Error)
+		}
+	}
+
+	return nil
+}

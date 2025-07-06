@@ -1,7 +1,6 @@
 package db
 
 import (
-	"strings"
 	"time"
 
 	"github.com/blebbit/at-mirror/pkg/plc"
@@ -9,7 +8,7 @@ import (
 
 type ID uint // should be same as type of gorm.Model.ID
 
-type PLCLogEntry struct {
+type PLCLogEntryUnique struct {
 	ID        ID `gorm:"primarykey"`
 	CreatedAt time.Time
 
@@ -20,24 +19,18 @@ type PLCLogEntry struct {
 	Operation    plc.Operation `gorm:"type:JSONB;serializer:json"`
 }
 
-func PLCLogEntryFromOp(op plc.OperationLogEntry) PLCLogEntry {
-	return PLCLogEntry{
-		DID:          op.DID,
-		CID:          op.CID,
-		PLCTimestamp: op.CreatedAt,
-		Nullified:    op.Nullified,
-		Operation:    op.Operation,
-	}
-}
+type PLCLogEntry struct {
+	ID        ID `gorm:"primarykey"`
+	CreatedAt time.Time
 
-func PLCLogEntryToOp(entry PLCLogEntry) plc.OperationLogEntry {
-	return plc.OperationLogEntry{
-		DID:       entry.DID,
-		CID:       entry.CID,
-		CreatedAt: entry.PLCTimestamp,
-		Nullified: entry.Nullified,
-		Operation: entry.Operation,
-	}
+	DID          string        `gorm:"column:did;index"`
+	CID          string        `gorm:"column:cid;index"`
+	PLCTimestamp string        `gorm:"column:plc_timestamp;index:,sort:desc"`
+	Nullified    bool          `gorm:"default:false"`
+	Operation    plc.Operation `gorm:"type:JSONB;serializer:json"`
+
+	// custom notes on the log entry, mainly for describing issues and errors
+	Notes string `gorm:"column:notes"`
 }
 
 type AccountInfo struct {
@@ -56,52 +49,39 @@ type AccountInfo struct {
 	// when did we last check if the handle points at the DID?
 	HandleMatchLastChecked time.Time
 
-	// collections
-	Collections any `gorm:"column:collections;type:JSONB;serializer:json"`
-
 	// extra info
-	Extra any `gorm:"column:extra;type:JSONB;serializer:json"`
+	DidDoc any `gorm:"column:did_doc;type:JSONB;serializer:json"`
+	Extra  any `gorm:"column:extra;type:JSONB;serializer:json"`
 }
 
-func AccountInfoFromOp(entry plc.OperationLogEntry) AccountInfo {
-	ai := AccountInfo{
-		DID:          entry.DID,
-		PLCTimestamp: entry.CreatedAt,
-	}
+const PlcLogEntryConflictPsqlfunction = `
+create or replace function before_update_on_plc_log_entries()
+returns trigger language plpgsql as $$
+begin
+    if new.did = old.did AND new.cid = old.cid then
+        insert into plc_log_entry_conflicts(oid, did, cid, updated_at)
+        values (old.id, old.did, old.cid, now())
+        on conflict(old.id, did, cid)
+        do update set updated_at = now(), count = plc_log_entry_conflicts.count + 1;
+        return null;
+    end if;
+    return new;
+end $$;
 
-	var op plc.Op
-	switch v := entry.Operation.Value.(type) {
-	case plc.Op:
-		op = v
-	case plc.LegacyCreateOp:
-		op = v.AsUnsignedOp()
-	}
-
-	if len(op.AlsoKnownAs) > 0 {
-		ai.Handle = strings.TrimPrefix(op.AlsoKnownAs[0], "at://")
-	}
-
-	if svc, ok := op.Services["atproto_pds"]; ok {
-		ai.PDS = svc.Endpoint
-	}
-	return ai
-}
-
-type AccountInfoView struct {
-	DID    string `json:"did"`
-	PDS    string `json:"pds"`
-	Handle string `json:"handle"`
-
-	PLCTime  string    `json:"plcTime"`
-	LastTime time.Time `json:"lastTime"`
-}
-
-func AccountViewFromInfo(info *AccountInfo) AccountInfoView {
-	return AccountInfoView{
-		DID:      info.DID,
-		PDS:      info.PDS,
-		Handle:   info.Handle,
-		PLCTime:  info.PLCTimestamp,
-		LastTime: info.UpdatedAt,
-	}
-}
+create trigger before_update_on_plc_log_entries
+before update on plc_log_entries
+for each row execute procedure before_update_on_plc_log_entries();
+`
+const PLCLogEntryConflictPsqlException = `
+create or replace function insert_or_log(arg_content text)
+returns void language plpgsql as
+$$
+begin
+  insert into fiche (content) values (arg_content);
+exception 
+  when unique_violation then
+    insert into fiche_qualites (poi_id, qualites_id)
+    values ((select idPoi from fiche where content = arg_content), 'Code error');
+end;
+$$;
+`

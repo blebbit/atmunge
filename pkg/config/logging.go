@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"context"
@@ -15,12 +15,19 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func setupLogging(ctx context.Context) context.Context {
+var logCtx context.Context
+
+func GetLogContext() context.Context {
+	return logCtx
+}
+
+func SetupLogging(ctx context.Context) context.Context {
 	logFile := os.Stdout
 
 	var output io.Writer
+	cfg := GetConfig()
 
-	switch config.LogFormat {
+	switch cfg.LogFormat {
 	case "json":
 		output = logFile
 	case "text":
@@ -66,12 +73,13 @@ func setupLogging(ctx context.Context) context.Context {
 			},
 		}
 	default:
-		log.Fatalf("Invalid log format specified: %q", config.LogFormat)
+		log.Fatalf("Invalid log format specified: %q", cfg.LogFormat)
 	}
 
-	logger := zerolog.New(output).Level(zerolog.Level(config.LogLevel)).With().Caller().Timestamp().Logger()
+	logger := zerolog.New(output).Level(zerolog.Level(cfg.LogLevel)).With().Caller().Timestamp().Logger()
 
 	ctx = logger.WithContext(ctx)
+	logCtx = ctx
 
 	zerolog.DefaultContextLogger = &logger
 	log.SetOutput(logger)

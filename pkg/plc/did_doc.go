@@ -14,17 +14,25 @@ func MakeDoc(entry OperationLogEntry, op Op) (did.Document, error) {
 		Method: "plc",
 		ID:     strings.TrimPrefix(entry.DID, "did:plc:"),
 	}
+	aka, err := mapSlice(op.AlsoKnownAs, ssi.ParseURI)
+	if err != nil {
+		return did.Document{}, err
+	}
 	doc := did.Document{
 		Context: []interface{}{
 			"https://www.w3.org/ns/did/v1",
 			"https://w3id.org/security/multikey/v1"},
 		ID:          didValue,
-		AlsoKnownAs: mapSlice(op.AlsoKnownAs, ssi.MustParseURI),
+		AlsoKnownAs: aka,
 	}
 
 	for id, s := range op.Services {
+		sid, err := ssi.ParseURI("#" + id)
+		if err != nil {
+			return did.Document{}, err
+		}
 		doc.Service = append(doc.Service, did.Service{
-			ID:              ssi.MustParseURI("#" + id),
+			ID:              *sid,
 			Type:            s.Type,
 			ServiceEndpoint: s.Endpoint,
 		})
@@ -60,10 +68,16 @@ func MakeDoc(entry OperationLogEntry, op Op) (did.Document, error) {
 	return doc, nil
 }
 
-func mapSlice[A any, B any](s []A, fn func(A) B) []B {
+func mapSlice[A any, B any](s []A, fn func(A) (*B, error)) ([]B, error) {
+	var e error
 	r := make([]B, 0, len(s))
 	for _, v := range s {
-		r = append(r, fn(v))
+		n, err := fn(v)
+		if err != nil {
+			e = err
+			continue
+		}
+		r = append(r, *n)
 	}
-	return r
+	return r, e
 }

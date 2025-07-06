@@ -11,7 +11,7 @@ import (
 	"golang.org/x/time/rate"
 	"gorm.io/gorm"
 
-	// "github.com/blebbit/at-mirror/pkg/config"
+	"github.com/blebbit/at-mirror/pkg/config"
 	plcdb "github.com/blebbit/at-mirror/pkg/db"
 )
 
@@ -27,8 +27,8 @@ const (
 type Runtime struct {
 	// shared resources
 	Ctx context.Context
-	// Cfg *config.Config
-	DB *gorm.DB
+	Cfg *config.Config
+	DB  *gorm.DB
 
 	// PLC mirror fields
 	upstream                *url.URL
@@ -48,6 +48,7 @@ func NewRuntime(ctx context.Context, db *gorm.DB) (*Runtime, error) {
 
 	r := &Runtime{
 		Ctx:      ctx,
+		Cfg:      config.GetConfig(),
 		DB:       db,
 		upstream: plcUrl(),
 		limiter:  rate.NewLimiter(defaultRateLimit, 4),
