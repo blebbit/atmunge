@@ -1,4 +1,53 @@
-# PLC mirror
+# Blebbit AT Mirror
+
+A collection of tools and utilities for backfilling, mirroring, and analyzing the ATProtocol network.
+
+> [!NOTE]
+> This repository is undergoing a major refactoring. Please stay tuned as changes come in!
+
+
+## Install & Setup
+
+```sh
+# install the cli
+go install ./cmd/at-mirror
+
+# setup the env
+cp env-example .env
+
+# start the db
+docker compose up -d db
+
+# run db migrations
+at-mirror db migrate
+```
+
+Deps:
+
+- docker
+- postgresql tools (psql, pg_dump, pg_restore)
+
+## PLC Mirror
+
+```sh
+# backfill the raw logs into the database (~12h when starting from zero)
+# however, it will start from where it left off if there is existing rows
+at-mirror plc backfill
+
+# dump the raw log table
+make dump.plc_log_entries.raw
+
+# restore from a dump
+make DATE=YYYYMMDD restore.plc_log_entries.raw
+```
+
+The latest dump is:
+
+- [plc_log_entries-raw-20250706.sql.zst](https://public.blebbit.dev/plc/plc_log_entries-raw-20250706.sql.zst)
+
+
+---
+
 
 Syncs PLC operations log into a local table, and allows resolving `did:plc:`
 DIDs without putting strain on https://plc.directory and hitting rate limits.

@@ -13,13 +13,13 @@ import (
 )
 
 func init() {
-	plcCmd.AddCommand(plcSnapshotCmd)
+	plcCmd.AddCommand(plcBackfillCmd)
 }
 
-var plcSnapshotCmd = &cobra.Command{
-	Use:   "snapshot",
-	Short: "Snapshot the PLC logs",
-	Long:  `Synchronize the PLC logs and create a snapshot of the current state.`,
+var plcBackfillCmd = &cobra.Command{
+	Use:   "backfill",
+	Short: "Backfill the PLC logs",
+	Long:  `Synchronize the PLC logs into the database.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
