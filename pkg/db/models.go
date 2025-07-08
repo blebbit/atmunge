@@ -30,7 +30,22 @@ type PLCLogEntry struct {
 	Operation    plc.Operation `gorm:"type:JSONB;serializer:json"`
 
 	// custom notes on the log entry, mainly for describing issues and errors
-	Notes string `gorm:"column:notes"`
+	Notes    string `gorm:"column:notes"`
+	Filtered int    `gorm:"column:filtered;default:0"` // roughly the number of issues
+}
+
+type PdsRepo struct {
+	ID        ID `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
+
+	PDS    string `gorm:"column:pds;index:idx_pds"`
+	DID    string `gorm:"column:did;index:idx_did"`
+	Head   string `gorm:"column:head"`
+	Rev    string `gorm:"column:rev"`
+	Active bool   `gorm:"column:active;default:true"`
+	Status string `gorm:"column:status"`
 }
 
 type AccountInfo struct {

@@ -1,0 +1,11 @@
+[project]
+name = "at-mirror"
+version = "0.1.0"
+description = "ATProtocol mirroring utilities"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["dsci/*"]
+# exclude = ["packages/seeds"]

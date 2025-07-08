@@ -6,4 +6,5 @@ go.work*
 csv_export.tgz
 *.override.yml
 /data
-/plc-mirror
+/at-mirror
+.ipynb_checkpoints

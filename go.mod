@@ -1,9 +1,11 @@
 module github.com/blebbit/at-mirror
 
-go 1.23.0
+go 1.24
+
+toolchain go1.24.4
 
 require (
-	github.com/bluesky-social/indigo v0.0.0-20250324192039-40f397713b63
+	github.com/bluesky-social/indigo v0.0.0-20250703203720-0f3058806983
 	github.com/ipfs/go-cid v0.4.1
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
