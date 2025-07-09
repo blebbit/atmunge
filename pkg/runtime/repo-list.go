@@ -22,16 +22,15 @@ type RepoListResp struct {
 	} `json:"repos"`
 }
 
-func (r *Runtime) RepoListFromPDS(pdses []string) error {
+func (r *Runtime) RepoListFromPDS(pdses []string, startPDS string) error {
 
 	sort.Strings(pdses)
 
-	skip := true
+	skip := startPDS != ""
 	for _, pds := range pdses {
-		// pds := "https://agrocybe.us-west.host.bsky.network"
 		pds = strings.TrimSuffix(pds, "/")
 
-		if pds == "https://lemon.skin" {
+		if skip && pds == startPDS {
 			skip = false
 		}
 		if skip {

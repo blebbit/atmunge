@@ -12,8 +12,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var genListStartPDS string // PDS to start from, if empty, starts from the first PDS in the list
+
 func init() {
 	repoCmd.AddCommand(repoGenListFromPdsCmd)
+	repoGenListFromPdsCmd.Flags().StringVar(&genListStartPDS, "start", "", "Continue from this PDS")
 }
 
 var repoGenListFromPdsCmd = &cobra.Command{
@@ -70,7 +73,7 @@ var repoGenListFromPdsCmd = &cobra.Command{
 			return err
 		}
 
-		err = r.RepoListFromPDS(pdses)
+		err = r.RepoListFromPDS(pdses, genListStartPDS)
 		if err != nil {
 			log.Error().Msgf("failed to backfill PLC logs: %s", err)
 			return err
