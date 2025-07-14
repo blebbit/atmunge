@@ -25,7 +25,7 @@ func GetClient(dbUrl string, ctx context.Context) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing DB URL: %w", err)
 	}
-	dbCfg.MaxConns = 1024
+	dbCfg.MaxConns = 4096
 	dbCfg.MinConns = 10
 	dbCfg.MaxConnLifetime = 6 * time.Hour
 	conn, err := pgxpool.NewWithConfig(ctx, dbCfg)

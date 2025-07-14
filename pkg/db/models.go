@@ -65,8 +65,8 @@ type AccountInfo struct {
 	HandleMatchLastChecked time.Time
 
 	// extra info
-	DidDoc any `gorm:"column:did_doc;type:JSONB;serializer:json"`
-	Extra  any `gorm:"column:extra;type:JSONB;serializer:json"`
+	Describe any `gorm:"column:describe;type:JSONB;serializer:json"`
+	Extra    any `gorm:"column:extra;type:JSONB;serializer:json"`
 }
 
 const PlcLogEntryConflictPsqlfunction = `

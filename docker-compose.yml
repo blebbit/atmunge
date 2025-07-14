@@ -12,7 +12,7 @@ services:
     volumes:
       - atmirror_db_data:/var/lib/postgresql/data
     ports:
-    - "5432:5432"
+    - "5555:5432"
 
   server:
     build:
@@ -29,7 +29,7 @@ services:
         condition: service_started
     environment:
       ATMIRROR_METRICS_PORT: '1323'
-      ATMIRROR_POSTGRES_URL: "postgres://postgres:${ATMIRROR_POSTGRES_PASSWORD}@db/atmirror?sslmode=disable"
+      ATMIRROR_POSTGRES_URL: "postgres://atmirror:atmirror@db/atmirror?sslmode=disable"
     ports:
       - "0.0.0.0:11004:1323"
     command: [ "--log-level=0", "--run-mirror=false" ]

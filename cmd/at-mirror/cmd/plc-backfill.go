@@ -12,8 +12,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	plcBackfillParallel int
+	plcBackfillStart    int
+	plcBackfillEnd      int
+)
+
 func init() {
 	plcCmd.AddCommand(plcBackfillCmd)
+	plcBackfillCmd.Flags().IntVar(&plcBackfillParallel, "parallel", 42, "Number of parallel workers to use for backfilling")
+	plcBackfillCmd.Flags().IntVar(&plcBackfillStart, "start", 0, "Start backfilling from this randomized ID list position")
+	plcBackfillCmd.Flags().IntVar(&plcBackfillEnd, "end", -1, "End backfilling at this randomized ID list position (-1 means no limit)")
 }
 
 var plcBackfillCmd = &cobra.Command{
