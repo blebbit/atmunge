@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/db"
 	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/blebbit/at-mirror/pkg/server"
 	"github.com/rs/zerolog"
@@ -27,28 +26,24 @@ var runCmd = &cobra.Command{
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 
-		ctx = config.SetupLogging(ctx)
-		log := zerolog.Ctx(ctx).With().Str("module", "server").Logger()
-		log.Info().Msgf("Starting up...")
-
-		cfg := config.GetConfig()
-
-		// db setup
-		DB, err := db.GetClient(cfg.DBUrl, ctx)
+		ctx, err := config.SetupLogging(ctx)
 		if err != nil {
 			return err
 		}
-		log.Info().Msgf("DB connection established")
+		log := zerolog.Ctx(ctx).With().
+			Str("module", "server").
+			Str("method", "run").
+			Logger()
 
 		// create our runtime
-		r, err := runtime.NewRuntime(ctx, DB)
+		r, err := runtime.NewRuntime(ctx)
 		if err != nil {
 			log.Error().Msgf("failed to create runtime: %s", err)
 			return err
 		}
 
 		// (maybe) start mirror
-		if cfg.RunPlcMirror {
+		if r.Cfg.RunPlcMirror {
 			go func() {
 				r.StartPLCMirror()
 			}()

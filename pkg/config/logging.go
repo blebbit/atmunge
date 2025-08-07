@@ -21,11 +21,14 @@ func GetLogContext() context.Context {
 	return logCtx
 }
 
-func SetupLogging(ctx context.Context) context.Context {
+func SetupLogging(ctx context.Context) (context.Context, error) {
 	logFile := os.Stdout
 
 	var output io.Writer
-	cfg := GetConfig()
+	cfg, err := GetConfig()
+	if err != nil {
+		return nil, err
+	}
 
 	switch cfg.LogFormat {
 	case "json":
@@ -84,5 +87,5 @@ func SetupLogging(ctx context.Context) context.Context {
 	zerolog.DefaultContextLogger = &logger
 	log.SetOutput(logger)
 
-	return ctx
+	return ctx, nil
 }

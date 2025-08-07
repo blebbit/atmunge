@@ -5,22 +5,20 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/blebbit/at-mirror/pkg/config"
+	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
-
-	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/runtime"
 )
 
 func init() {
-	dbCmd.AddCommand(dbResetCmd)
+	backfillCmd.AddCommand(backfillPlcLogsCmd)
 }
 
-var dbResetCmd = &cobra.Command{
-	Use:   "reset",
-	Short: "Reset the database",
-	Long:  `Reset the database by dropping all tables and recreating them.`,
+var backfillPlcLogsCmd = &cobra.Command{
+	Use:   "plc-logs",
+	Short: "Backfill the PLC logs",
+	Long:  `Synchronize the PLC logs into the database.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
@@ -30,9 +28,10 @@ var dbResetCmd = &cobra.Command{
 			return err
 		}
 		log := zerolog.Ctx(ctx).With().
-			Str("module", "db").
-			Str("method", "migrate").
+			Str("module", "backfill").
+			Str("method", "plc-logs").
 			Logger()
+		log.Info().Msgf("Starting up...")
 
 		// create our runtime
 		r, err := runtime.NewRuntime(ctx)
@@ -41,17 +40,11 @@ var dbResetCmd = &cobra.Command{
 			return err
 		}
 
-		// db migrations (if needed)
-		err = db.DropTables(r.DB)
+		err = r.BackfillPlcLogs()
 		if err != nil {
+			log.Error().Msgf("failed to backfill PLC logs: %s", err)
 			return err
 		}
-		err = db.MigrateModels(r.DB)
-		if err != nil {
-			return err
-		}
-
-		log.Info().Msgf("DB reset")
 
 		return nil
 	},

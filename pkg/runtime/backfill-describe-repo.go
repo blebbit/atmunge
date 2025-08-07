@@ -5,71 +5,60 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
-	"sync"
+	"sync/atomic"
 
 	atdb "github.com/blebbit/at-mirror/pkg/db"
 	"github.com/rs/zerolog"
 	"github.com/wandb/parallel"
 
 	// "https://github.com/vgarvardt/gue" // alternative to parallel that is more like pg-boss
-	"go.uber.org/ratelimit"
+
 	"gorm.io/gorm/clause"
 )
 
-// per DSP rate limiters
-var limiters sync.Map
-
-func (r *Runtime) RepoBackfillDescribe(start, end, par int, retry_errors bool) error {
+func (r *Runtime) BackfillDescribeRepo(par int, start string) error {
 	log := zerolog.Ctx(r.Ctx).With().Str("module", "repo-describe").Logger()
-
-	// fetch all PdsRepo entries that have no corresponding AccountInfo entry
-	// TODO, add an updated_at option so we can refresh on cron or similar
-	var ids []string
-	log.Info().Msgf("Gathering entries to backfill")
-	err := r.DB.Model(&atdb.PdsRepo{}).
-		Where("active = true").
-		Where("NOT EXISTS (SELECT 1 FROM account_infos WHERE account_infos.did = pds_repos.did)").
-		Pluck("id", &ids).Error
-	if err != nil {
-		return fmt.Errorf("failed to fetch PdsRepo entries: %w", err)
-	}
-	log.Info().Msgf("Found %d PdsRepo entries to fetch", len(ids))
-	if len(ids) == 0 {
-		log.Info().Msgf("No PdsRepo entries found to fetch, exiting")
-		return nil
-	}
-
-	// Shuffle the slice (pds_repos is ordered by pds->did)
-	// so we can spread the parallel requests across PDSes
-	// and not get rate limited by a single PDS in order
-	for i := range ids {
-		j := i + int(uint32(rand.Int63())%(uint32(len(ids))-uint32(i)))
-		ids[i], ids[j] = ids[j], ids[i]
-	}
 
 	// create a group of workers
 	group := parallel.Limited(r.Ctx, par)
 
-	// queue up work
-	if end < 0 || end > len(ids) {
-		end = len(ids)
+	// get total count of PdsRepo entries to process for progress reporting
+	count, err := r.countRemainingToProcess("account_infos", start)
+	if err != nil {
+		return fmt.Errorf("failed to count repo describes: %w", err)
 	}
-	for index := atdb.ID(start); int(index) < end; index++ {
-		group.Go(func(ctx context.Context) {
-			err := r.processRepoDescribe(ids[index])
-			if err != nil {
-				log.Error().Err(err).Msgf("Failed to process repo %s", ids[index])
-				return
-			}
-			// <-time.After(time.Second)
 
-			if index%1000 == 0 {
-				log.Info().Msgf("Processing %d/%d repos", index, end)
-			}
-		})
+	for {
+
+		ids, err := r.getRandomSetToProcess("account_infos", start, 1000)
+		if err != nil {
+			return fmt.Errorf("failed to get random repo describes: %w", err)
+		}
+
+		// if no more entries, we are done
+		if len(ids) == 0 {
+			log.Info().Msgf("No PdsRepo entries found to fetch, exiting")
+			break
+		}
+
+		var total atomic.Int64
+
+		for index := 0; index < len(ids); index++ {
+			group.Go(func(ctx context.Context) {
+				err := r.processRepoDescribe(ids[index])
+				if err != nil {
+					log.Error().Err(err).Msgf("Failed to process repo %s", ids[index])
+					return
+				}
+
+				total.Add(1)
+			})
+		}
+
+		log.Info().Msgf("Processing %d/%d repos", total.Load(), count)
 	}
+
 	return nil
 }
 
@@ -85,14 +74,8 @@ func (r *Runtime) processRepoDescribe(id string) error {
 		return fmt.Errorf("failed to get PdsRepo entry: %w", err)
 	}
 
-	// per PDS rate limiters
-	limiter, ok := limiters.Load(row.PDS)
-	if !ok {
-		// create a new rate limiter for this PDS
-		limiter = ratelimit.New(9) // 10 requests per second is at the limit the PDS defaults to (3000;300w)
-		limiter, _ = limiters.LoadOrStore(row.PDS, limiter)
-	}
-	limiter.(ratelimit.Limiter).Take() // wait for the rate limit
+	// per PDS rate limiters, blocks until some rate limit is available
+	r.limitTaker(row.PDS)
 
 	url := fmt.Sprintf("%s/xrpc/com.atproto.repo.describeRepo?repo=%s", row.PDS, row.DID)
 	resp, err := http.Get(url)

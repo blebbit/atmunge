@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/db"
 	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
@@ -15,26 +16,35 @@ import (
 var genListStartPDS string // PDS to start from, if empty, starts from the first PDS in the list
 
 func init() {
-	repoCmd.AddCommand(repoGenListFromPdsCmd)
-	repoGenListFromPdsCmd.Flags().StringVar(&genListStartPDS, "start", "", "Continue from this PDS")
+	backfillCmd.AddCommand(backfillPdsAccountsCmd)
 }
 
-var repoGenListFromPdsCmd = &cobra.Command{
-	Use:   "gen-list-from-pds",
-	Short: "Generate a list of repos from PDS list",
-	Long:  "Generate a list of repos from PDS list",
+var backfillPdsAccountsCmd = &cobra.Command{
+	Use:   "pds-accounts",
+	Short: "Backfill the list of repos per PDS",
+	Long:  "Backfill the list of repos per PDS",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-		// defer stop()
-		ctx := context.Background()
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer stop()
 
-		ctx = config.SetupLogging(ctx)
-		log := zerolog.Ctx(ctx).With().Str("module", "repo").Logger()
+		ctx, err := config.SetupLogging(ctx)
+		if err != nil {
+			return err
+		}
+		log := zerolog.Ctx(ctx).With().
+			Str("module", "backfill").
+			Str("method", "pds-accounts").
+			Logger()
 		log.Info().Msgf("Starting up...")
 
-		cfg := config.GetConfig()
+		// create our runtime
+		r, err := runtime.NewRuntime(ctx)
+		if err != nil {
+			log.Error().Msgf("failed to create runtime: %s", err)
+			return err
+		}
 
-		// load repo list from json
+		// load repo list from json (TODO, should put this in a table for consistency, have some command to fetch and sync)
 		j, err := os.ReadFile("./data/atproto-scraping-state.json")
 		if err != nil {
 			log.Error().Msgf("failed to read json file: %s", err)
@@ -59,21 +69,7 @@ var repoGenListFromPdsCmd = &cobra.Command{
 
 		log.Info().Msgf("Found %d PDSes", len(pdses))
 
-		// db setup
-		DB, err := db.GetClient(cfg.DBUrl, ctx)
-		if err != nil {
-			return err
-		}
-		log.Info().Msgf("DB connection established")
-
-		// create our runtime
-		r, err := runtime.NewRuntime(ctx, DB)
-		if err != nil {
-			log.Error().Msgf("failed to create runtime: %s", err)
-			return err
-		}
-
-		err = r.RepoListFromPDS(pdses, genListStartPDS)
+		err = r.BackfillPdsAccounts(pdses, genListStartPDS)
 		if err != nil {
 			log.Error().Msgf("failed to backfill PLC logs: %s", err)
 			return err

@@ -27,23 +27,53 @@ Deps:
 - docker
 - postgresql tools (psql, pg_dump, pg_restore)
 
-## PLC Mirror
+Downloads:
+
+TODO, rename R2 dir to at-mirror (really nuke and re-upload)
+
+Database dumps to prefill and save time with
+
+- [plc_log_entries-raw-20250706.sql.zst](https://public.blebbit.dev/at-mirror/plc_log_entries-raw-20250706.sql.zst)
+- [plc_log_entries-filtered-20250706.sql.zst](https://public.blebbit.dev/at-mirror/plc_log_entries-filtered-20250706.sql.zst)
+- [pds_repos-2025-0714.sql.zst](https://public.blebbit.dev/at-mirror/pds_repos-20250714.sql.zst)
+- [account_infos-2025-0714.sql.zst](https://public.blebbit.dev/at-mirror/account_infos-20250714.sql.zst)
+
+
+## Backfilling
+
+We recommend starting from the database backups above. It will save you many hours (24h+)
+Either way, the following commands will work from empty or restored database tables.
+
+Restore: (DATE should match the file you downloaded and may not be consistent between commands)
 
 ```sh
-# backfill the raw logs into the database (~12h when starting from zero)
-# however, it will start from where it left off if there is existing rows
-at-mirror plc backfill
-
-# dump the raw log table
-make dump.plc_log_entries.raw
-
-# restore from a dump
 make DATE=YYYYMMDD restore.plc_log_entries.raw
+make DATE=YYYYMMDD restore.pds_repos
+make DATE=YYYYMMDD restore.account_infos
 ```
 
-The latest dump is:
+Backfill:
 
-- [plc_log_entries-raw-20250706.sql.zst](https://public.blebbit.dev/plc/plc_log_entries-raw-20250706.sql.zst)
+```sh
+# backfill the raw PLC logs (~12h when starting from zero)
+at-mirror backfill plc-logs [--fliter]
+
+# backfill the pds_repos list (~4h)
+at-mirror backfill pds-accounts
+
+# backfill the accounts_infos table (~20h)
+#   describe repo (status + collections)
+#   (also writes to the pds_repos table to update status)
+at-mirror backfill describe-repo
+
+# gets recent records for each collection, flags to config this (even longer...)
+at-mirror backfill recent-records
+```
+
+
+## Serving
+
+You can serve you backfills as a unified API
 
 
 ---

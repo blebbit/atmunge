@@ -3,25 +3,16 @@ package runtime
 import (
 	"context"
 	"fmt"
-	"math"
-	"net/url"
 	"sync"
 	"time"
 
+	"go.uber.org/ratelimit"
 	"golang.org/x/time/rate"
 	"gorm.io/gorm"
 
 	"github.com/blebbit/at-mirror/pkg/config"
+	"github.com/blebbit/at-mirror/pkg/db"
 	plcdb "github.com/blebbit/at-mirror/pkg/db"
-)
-
-const (
-	// plc.directory settings
-	// Current rate limit is `500 per five minutes`, lets stay a bit under it.
-	defaultRateLimit  = rate.Limit(450.0 / 300.0)
-	caughtUpRateLimit = rate.Limit(0.2)
-	caughtUpThreshold = 10 * time.Minute
-	maxDelay          = 5 * time.Minute
 )
 
 type Runtime struct {
@@ -30,8 +21,10 @@ type Runtime struct {
 	Cfg *config.Config
 	DB  *gorm.DB
 
+	// string -> limiter (largely for per-PDS rate limiting)
+	limiters sync.Map
+
 	// PLC mirror fields
-	upstream                *url.URL
 	MaxDelay                time.Duration
 	limiter                 *rate.Limiter
 	plcMutex                sync.RWMutex
@@ -44,29 +37,27 @@ type Runtime struct {
 	lastAccountTimestamp time.Time
 }
 
-func NewRuntime(ctx context.Context, db *gorm.DB) (*Runtime, error) {
+func NewRuntime(ctx context.Context) (*Runtime, error) {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// db setup
+	DB, err := db.GetClient(cfg.DBUrl, ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	r := &Runtime{
 		Ctx:      ctx,
-		Cfg:      config.GetConfig(),
-		DB:       db,
-		upstream: plcUrl(),
-		limiter:  rate.NewLimiter(defaultRateLimit, 4),
-		MaxDelay: maxDelay,
+		Cfg:      cfg,
+		DB:       DB,
+		limiter:  rate.NewLimiter(plcRateLimit, 4),
+		MaxDelay: plcMaxDelay,
 	}
 
 	return r, nil
-}
-
-func (r *Runtime) updateRateLimit(lastRecordTimestamp time.Time) {
-	// Reduce rate limit if we are caught up, to get new records in larger batches.
-	desiredRate := defaultRateLimit
-	if time.Since(lastRecordTimestamp) < caughtUpThreshold {
-		desiredRate = caughtUpRateLimit
-	}
-	if math.Abs(float64(r.limiter.Limit()-desiredRate)) > 0.0000001 {
-		r.limiter.SetLimit(rate.Limit(desiredRate))
-	}
 }
 
 func (r *Runtime) LastCompletion() time.Time {
@@ -102,4 +93,15 @@ func (r *Runtime) LastRecordTimestamp(ctx context.Context) (time.Time, error) {
 		return r.lastRecordTimestamp, nil
 	}
 	return dbTimestamp, nil
+}
+
+func (r *Runtime) limitTaker(key string) {
+	// per PDS rate limiters
+	limiter, ok := r.limiters.Load(key)
+	if !ok {
+		// create a new rate limiter for this PDS
+		limiter = ratelimit.New(9) // 10 requests per second is at the limit the PDS defaults to (3000;300w)
+		limiter, _ = r.limiters.LoadOrStore(key, limiter)
+	}
+	limiter.(ratelimit.Limiter).Take() // wait for the rate limit
 }

@@ -75,14 +75,17 @@ func (r *Runtime) BackfillMirror() error {
 		return fmt.Errorf("failed to get the cursor: %w", err)
 	}
 
-	cursorTimestamp, err := time.Parse(time.RFC3339, cursor)
-	if err != nil {
-		log.Error().Err(err).Msgf("parsing timestamp %q: %s", cursor, err)
-	} else {
-		r.updateRateLimit(cursorTimestamp)
-	}
+	// cursorTimestamp, err := time.Parse(time.RFC3339, cursor)
+	// if err != nil {
+	// 	log.Error().Err(err).Msgf("parsing timestamp %q: %s", cursor, err)
+	// } else {
+	// 	r.updateRateLimit(cursorTimestamp)
+	// }
 
-	u := *r.upstream
+	u, err := url.Parse(r.Cfg.PlcUpstream)
+	if err != nil {
+		return err
+	}
 
 	// loop to get 1000 records at a time until we are caught up
 	for {
@@ -196,6 +199,8 @@ func (r *Runtime) BackfillMirror() error {
 		}
 		err = r.DB.Clauses(
 			clause.OnConflict{
+				// TargetWhere: ,
+				// Where: ,
 				Columns:   []clause.Column{{Name: "did"}},
 				DoUpdates: clause.AssignmentColumns([]string{"plc_timestamp", "pds", "handle"}),
 			},
@@ -210,7 +215,7 @@ func (r *Runtime) BackfillMirror() error {
 			r.lastRecordTimestamp = lastTimestamp
 			r.plcMutex.Unlock()
 
-			r.updateRateLimit(lastTimestamp)
+			// r.updateRateLimit(lastTimestamp)
 		}
 
 		log.Info().Msgf("Got %d | %d log entries. New cursor: %q", len(newEntries), len(newInfos), cursor)
@@ -237,14 +242,17 @@ func (r *Runtime) BackfillPlcLogs() error {
 		return fmt.Errorf("failed to get the cursor: %w", err)
 	}
 
-	cursorTimestamp, err := time.Parse(time.RFC3339, cursor)
-	if err != nil {
-		log.Error().Err(err).Msgf("parsing timestamp %q: %s", cursor, err)
-	} else {
-		r.updateRateLimit(cursorTimestamp)
-	}
+	// cursorTimestamp, err := time.Parse(time.RFC3339, cursor)
+	// if err != nil {
+	// 	log.Error().Err(err).Msgf("parsing timestamp %q: %s", cursor, err)
+	// } else {
+	// 	r.updateRateLimit(cursorTimestamp)
+	// }
 
-	u := *r.upstream
+	u, err := url.Parse(r.Cfg.PlcUpstream)
+	if err != nil {
+		return err
+	}
 
 	// bookeeping
 	var good, bad, errs int
@@ -380,15 +388,7 @@ func (r *Runtime) BackfillPlcLogs() error {
 
 		// write PLC Log rows
 		if len(newEntries) > 0 {
-			err = r.DB.Clauses(
-			// clause.OnConflict{
-			// 	Columns: []clause.Column{{Name: "did"}, {Name: "cid"}},
-			// 	// HMMM, what should we do on conflicts?
-			// 	DoNothing: true,
-			// 	// UpdateAll: true,
-			// 	// (ideally), write to conflict table
-			// },
-			).Create(newEntries).Error
+			err = r.DB.Create(newEntries).Error
 			if err != nil {
 				return fmt.Errorf("inserting log entry into database: %w", err)
 			}
@@ -400,7 +400,7 @@ func (r *Runtime) BackfillPlcLogs() error {
 			r.lastRecordTimestamp = lastTimestamp
 			r.plcMutex.Unlock()
 
-			r.updateRateLimit(lastTimestamp)
+			// r.updateRateLimit(lastTimestamp)
 		}
 
 		log.Info().Msgf("%d | %d | %d | %d | %d entries. New cursor: %q", good, bad, errs, good+bad+errs, len(newEntries), cursor)

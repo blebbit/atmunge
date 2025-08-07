@@ -1,13 +1,39 @@
 package db
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/blebbit/at-mirror/pkg/plc"
 )
 
-type ID uint // should be same as type of gorm.Model.ID
+// should be same as type of gorm.Model.ID
+type ID uint
 
+// JSONRaw defined to handle raw JSON data
+type JSONRaw json.RawMessage
+
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (j *JSONRaw) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	*j = bytes
+	return nil
+}
+
+// Value return json value, implement driver.Valuer interface
+func (j JSONRaw) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
+	return json.RawMessage(j).MarshalJSON()
+}
+
+// this came from original plc-mirror code base
 type PLCLogEntryUnique struct {
 	ID        ID `gorm:"primarykey"`
 	CreatedAt time.Time
@@ -65,8 +91,17 @@ type AccountInfo struct {
 	HandleMatchLastChecked time.Time
 
 	// extra info
-	Describe any `gorm:"column:describe;type:JSONB;serializer:json"`
-	Extra    any `gorm:"column:extra;type:JSONB;serializer:json"`
+	Describe JSONRaw `gorm:"column:describe;type:JSONB"`
+	Extra    JSONRaw `gorm:"column:extra;type:JSONB"`
+}
+
+type AccountRepo struct {
+	DID string `gorm:"primarykey;column:did;index:did_timestamp;uniqueIndex:did"`
+
+	Rev       string `gorm:"column:rev;index:idx_rev"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
 }
 
 const PlcLogEntryConflictPsqlfunction = `

@@ -27,7 +27,7 @@ start-db:
 	@docker compose up -d postgres
 
 psql:
-	docker exec -it at-mirror-postgres-1 psql -U postgres -d plc
+	docker exec -it at-mirror-db-1 psql -U atmirror -d atmirror
 
 status:
 	@docker compose stats

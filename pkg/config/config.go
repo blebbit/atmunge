@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -15,11 +13,11 @@ type Config struct {
 	DBUrl       string `envconfig:"POSTGRES_URL"`
 
 	// plc config
-	PlcUpstream           string `split_words:"true" default:"https://plc.directory"`
-	PlcFilter             bool   `split_words:"true" default:"false"`
-	PlcFilterKeep         bool   `split_words:"true" default:"false"`
-	PlcConflictUpdate     bool   `split_words:"true" default:"false"`
-	PlcConflictUpdateKeep bool   `split_words:"true" default:"false"`
+	PlcUpstream string `split_words:"true" default:"https://plc.directory"`
+	PlcFilter   bool   `split_words:"true" default:"false"`
+
+	// repo config
+	RepoDataDir string `split_words:"true" default:"/data/repos"`
 
 	// server config
 	RunPlcMirror  bool   `split_words:"true" default:"true"`
@@ -30,21 +28,23 @@ type Config struct {
 
 var cfg *Config
 
-func GetConfig() *Config {
+func GetConfig() (*Config, error) {
 	if cfg == nil {
-		LoadConfig()
+		err := LoadConfig()
+		if err != nil {
+			return nil, err
+		}
 	}
-	return cfg
+	return cfg, nil
 }
 
 func LoadConfig() error {
 	var c Config
-
-	if err := envconfig.Process("atmirror", &c); err != nil {
-		log.Fatalf("envconfig.Process: %s", err)
+	err := envconfig.Process("atmirror", &c)
+	if err != nil {
+		return err
 	}
 
 	cfg = &c
-
 	return nil
 }
