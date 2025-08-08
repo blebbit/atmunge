@@ -30,6 +30,7 @@ func init() {
 	rootCmd.AddCommand(backfillCmd)
 	rootCmd.AddCommand(dbCmd)
 	rootCmd.AddCommand(plcCmd)
+	rootCmd.AddCommand(repoCmd)
 
 	backfillCmd.PersistentFlags().IntVarP(&backfillParallel, "parallel", "p", 100, "Number of parallel workers to use for backfilling")
 	backfillCmd.PersistentFlags().StringVarP(&backfillStart, "start", "s", "", "Starting point to use for backfilling, command dependent")

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var hackCmd = &cobra.Command{
+var repoHackCmd = &cobra.Command{
 	Use:   "hack [args...]",
 	Short: "developer hack command, change implementation as needed",
 	Args:  cobra.ExactArgs(1),

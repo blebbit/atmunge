@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var lsCmd = &cobra.Command{
+var repoLsCmd = &cobra.Command{
 	Use:     "ls [car file]",
 	Short:   "List records in a CAR file",
 	Args:    cobra.ExactArgs(1),
@@ -19,13 +19,13 @@ var lsCmd = &cobra.Command{
 		carFile := args[0]
 		f, err := os.Open(carFile)
 		if err != nil {
-			log.Fatalf("failed to open car file: %w", err)
+			log.Fatalf("failed to open car file: %v", err)
 		}
 		defer f.Close()
 
 		r, err := repo.ReadRepoFromCar(f)
 		if err != nil {
-			log.Fatalf("failed to read repo from car: %w", err)
+			log.Fatalf("failed to read repo from car: %v", err)
 		}
 
 		err = r.MST.Walk(func(k []byte, v cid.Cid) error {
@@ -33,7 +33,7 @@ var lsCmd = &cobra.Command{
 			return nil
 		})
 		if err != nil {
-			log.Fatalf("failed to walk repo: %w", err)
+			log.Fatalf("failed to walk repo: %v", err)
 		}
 	},
 }

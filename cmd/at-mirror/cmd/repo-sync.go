@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var syncCmd = &cobra.Command{
+var repoSyncCmd = &cobra.Command{
 	Use:   "sync [account]",
 	Short: "Sync a repo from a PDS",
 	Args:  cobra.ExactArgs(1),

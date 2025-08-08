@@ -19,7 +19,7 @@ type repoMSTOptions struct {
 	fullCID bool
 }
 
-var mstCmd = &cobra.Command{
+var repoMstCmd = &cobra.Command{
 	Use:   "mst [car file]",
 	Short: "Show repo MST structure",
 	Args:  cobra.ExactArgs(1),

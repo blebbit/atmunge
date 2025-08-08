@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var unpackCmd = &cobra.Command{
+var repoUnpackCmd = &cobra.Command{
 	Use:   "unpack [car file]",
 	Short: "Unpack records from a CAR file",
 	Args:  cobra.ExactArgs(1),
@@ -25,13 +25,13 @@ var unpackCmd = &cobra.Command{
 
 		f, err := os.Open(carFile)
 		if err != nil {
-			log.Fatalf("failed to open car file: %w", err)
+			log.Fatalf("failed to open car file: %v", err)
 		}
 		defer f.Close()
 
 		r, err := repo.ReadRepoFromCar(f)
 		if err != nil {
-			log.Fatalf("failed to read repo from car: %w", err)
+			log.Fatalf("failed to read repo from car: %v", err)
 		}
 
 		if outputDir == "" {
@@ -71,11 +71,11 @@ var unpackCmd = &cobra.Command{
 			return nil
 		})
 		if err != nil {
-			log.Fatalf("failed to walk repo: %w", err)
+			log.Fatalf("failed to walk repo: %v", err)
 		}
 	},
 }
 
 func init() {
-	unpackCmd.Flags().StringP("output", "o", "", "output directory")
+	repoUnpackCmd.Flags().StringP("output", "o", "", "output directory")
 }

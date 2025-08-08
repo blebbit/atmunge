@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var inspectCmd = &cobra.Command{
+var repoInspectCmd = &cobra.Command{
 	Use:   "inspect [car file]",
 	Short: "Show commit metadata from a CAR file",
 	Args:  cobra.ExactArgs(1),
