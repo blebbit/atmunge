@@ -2,7 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
 
+	"github.com/blebbit/at-mirror/pkg/repo"
+	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 )
 
@@ -11,6 +15,28 @@ var lsCmd = &cobra.Command{
 	Short: "List records in a CAR file",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ls not implemented yet")
+		carFile := args[0]
+		f, err := os.Open(carFile)
+		if err != nil {
+			log.Fatalf("failed to open car file: %w", err)
+		}
+		defer f.Close()
+
+		r, err := repo.ReadRepoFromCar(f)
+		if err != nil {
+			log.Fatalf("failed to read repo from car: %w", err)
+		}
+
+		err = r.MST.Walk(func(k []byte, v cid.Cid) error {
+			fmt.Printf("%s\t%s\n", string(k), v.String())
+			return nil
+		})
+		if err != nil {
+			log.Fatalf("failed to walk repo: %w", err)
+		}
 	},
+}
+
+func init() {
+	rootCmd.AddCommand(lsCmd)
 }

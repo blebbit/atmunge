@@ -8,8 +8,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "car",
-	Short: "A tool to work with ATProto repo CAR files",
+	Use:   "hack",
+	Short: "A collection of hack scripts",
 }
 
 func Execute() {
@@ -20,13 +20,9 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(syncCmd)
-	rootCmd.AddCommand(lsCmd)
+	rootCmd.AddCommand(hackCmd)
 	rootCmd.AddCommand(inspectCmd)
+	rootCmd.AddCommand(lsCmd)
 	rootCmd.AddCommand(mstCmd)
 	rootCmd.AddCommand(unpackCmd)
-
-	rootCmd.AddCommand(hackCmd)
-
-	lsCmd.Aliases = []string{"list"}
 }

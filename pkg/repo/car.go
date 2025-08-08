@@ -15,6 +15,10 @@ import (
 	"github.com/ipfs/go-cid"
 	car "github.com/ipld/go-car/v2"
 	"github.com/ipld/go-car/v2/blockstore"
+
+	indigoRepo "github.com/bluesky-social/indigo/atproto/repo"
+	"github.com/bluesky-social/indigo/atproto/repo/mst"
+	"github.com/bluesky-social/indigo/atproto/syntax"
 )
 
 // GetRepo fetches a repo's CAR file from a PDS.
@@ -279,4 +283,59 @@ func WriteCar(filePath string, rootCid cid.Cid, blockstoreMem map[cid.Cid][]byte
 	}
 	fmt.Println("Wrote merged CAR with root", rootCid, "to", filePath)
 	return nil
+}
+
+func ReadRepoFromCar(r io.Reader) (*indigoRepo.Repo, error) {
+	ctx := context.Background()
+
+	br, err := car.NewBlockReader(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create block reader: %w", err)
+	}
+
+	bs := indigoRepo.NewTinyBlockstore()
+	for {
+		blk, err := br.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("failed to read block: %w", err)
+		}
+
+		if err := bs.Put(ctx, blk); err != nil {
+			return nil, fmt.Errorf("failed to put block in blockstore: %v", err)
+		}
+	}
+
+	if len(br.Roots) == 0 {
+		return nil, fmt.Errorf("car has no roots")
+	}
+
+	commitBlock, err := bs.Get(ctx, br.Roots[0])
+	if err != nil {
+		return nil, fmt.Errorf("commit block not found in CAR: %v", err)
+	}
+
+	var commit indigoRepo.Commit
+	if err := commit.UnmarshalCBOR(bytes.NewReader(commitBlock.RawData())); err != nil {
+		return nil, fmt.Errorf("parsing commit block from CAR file: %v", err)
+	}
+	if err := commit.VerifyStructure(); err != nil {
+		return nil, fmt.Errorf("verifying commit block from CAR file: %v", err)
+	}
+
+	tree, err := mst.LoadTreeFromStore(ctx, bs, commit.Data)
+	if err != nil {
+		return nil, fmt.Errorf("reading MST from CAR file: %v", err)
+	}
+	clk := syntax.ClockFromTID(syntax.TID(commit.Rev))
+	repo := &indigoRepo.Repo{
+		DID:         syntax.DID(commit.DID), // NOTE: VerifyStructure() already checked DID syntax
+		Clock:       &clk,
+		MST:         *tree,
+		RecordStore: bs,
+	}
+
+	return repo, nil
 }
