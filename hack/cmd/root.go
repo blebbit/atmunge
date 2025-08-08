@@ -26,5 +26,7 @@ func init() {
 	rootCmd.AddCommand(mstCmd)
 	rootCmd.AddCommand(unpackCmd)
 
+	rootCmd.AddCommand(hackCmd)
+
 	lsCmd.Aliases = []string{"list"}
 }

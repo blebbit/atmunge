@@ -43,6 +43,79 @@ func GetRepo(pdsHost, did, since string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
+type CarInfo struct {
+	Roots   []cid.Cid
+	Commits []Commit
+}
+
+type Commit struct {
+	CID     cid.Cid
+	Version int64    `cbor:"version"`
+	Data    cid.Cid  `cbor:"data"`
+	Rev     string   `cbor:"rev"`
+	Prev    *cid.Cid `cbor:"prev"`
+	DID     string   `cbor:"did"`
+	Sig     []byte   `cbor:"sig"`
+}
+
+// GetCarInfo reads a CAR file and returns information about its roots and commits.
+func GetCarInfo(filePath string) (*CarInfo, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open car file: %w", err)
+	}
+	defer f.Close()
+
+	br, err := car.NewBlockReader(f)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create block reader: %w", err)
+	}
+
+	info := &CarInfo{
+		Roots: br.Roots,
+	}
+
+	if len(br.Roots) == 0 {
+		return info, nil
+	}
+	commitCid := br.Roots[0]
+
+	// Reset file reader to search for the commit block from the beginning
+	_, err = f.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, fmt.Errorf("failed to seek in car file: %w", err)
+	}
+
+	// Re-initialize block reader
+	br, err = car.NewBlockReader(f)
+	if err != nil {
+		return nil, fmt.Errorf("failed to re-create block reader: %w", err)
+	}
+
+	for {
+		blk, err := br.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed reading block from CAR: %w", err)
+		}
+
+		if blk.Cid().Equals(commitCid) {
+			var commit Commit
+			if err := cbor.Unmarshal(blk.RawData(), &commit); err == nil {
+				commit.CID = blk.Cid()
+				info.Commits = append(info.Commits, commit)
+			}
+			// Found the root commit, we can stop.
+			// If there are multiple roots, this only gets the first one.
+			break
+		}
+	}
+
+	return info, nil
+}
+
 // ExtractRoot reads CAR data and returns the root CID as a string.
 func ExtractRoot(carData []byte) (string, error) {
 	br, err := car.NewBlockReader(bytes.NewReader(carData))
