@@ -24,5 +24,6 @@ func init() {
 	rootCmd.AddCommand(inspectCmd)
 	rootCmd.AddCommand(lsCmd)
 	rootCmd.AddCommand(mstCmd)
+	rootCmd.AddCommand(syncCmd)
 	rootCmd.AddCommand(unpackCmd)
 }

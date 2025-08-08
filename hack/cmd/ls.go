@@ -11,9 +11,10 @@ import (
 )
 
 var lsCmd = &cobra.Command{
-	Use:   "ls [car file]",
-	Short: "List records in a CAR file",
-	Args:  cobra.ExactArgs(1),
+	Use:     "ls [car file]",
+	Short:   "List records in a CAR file",
+	Args:    cobra.ExactArgs(1),
+	Aliases: []string{"list"},
 	Run: func(cmd *cobra.Command, args []string) {
 		carFile := args[0]
 		f, err := os.Open(carFile)
@@ -35,8 +36,4 @@ var lsCmd = &cobra.Command{
 			log.Fatalf("failed to walk repo: %w", err)
 		}
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(lsCmd)
 }
