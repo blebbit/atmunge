@@ -146,7 +146,7 @@ func (r *Runtime) processRepoSync(did string) error {
 
 	// if we have updates, merge them
 	if len(updateCarData) > 0 {
-		newRootCid, newestRev, _ /*newestBlocks*/, err := repo.MergeUpdate(blockstoreMem, updateCarData)
+		newRootCid, newestRev, newBlocks, err := repo.MergeUpdate(blockstoreMem, updateCarData)
 		if err != nil {
 			return fmt.Errorf("failed to merge update for %s: %w", did, err)
 		}
@@ -160,10 +160,9 @@ func (r *Runtime) processRepoSync(did string) error {
 			}
 
 			// also write to sqlite
-			// TODO, should only write new records to database
 			sqlitePath := fmt.Sprintf("%s/%s.db", dataDir, did)
-			if err := repo.BlockstoreToSQLite(r.Ctx, blockstoreMem, newRootCid, sqlitePath); err != nil {
-				log.Error().Err(err).Msgf("failed to convert CAR to SQLite for %s", did)
+			if err := repo.SaveNewRecordsToSQLite(r.Ctx, blockstoreMem, newBlocks, newRootCid, sqlitePath); err != nil {
+				log.Error().Err(err).Msgf("failed to save new records to SQLite for %s", did)
 				// deciding not to return error here, as the primary sync succeeded
 			}
 		}

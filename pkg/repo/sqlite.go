@@ -83,6 +83,67 @@ func BlockstoreToSQLite(ctx context.Context, bsMap map[cid.Cid][]byte, root cid.
 	return RepoToSQLite(r, dbPath)
 }
 
+func SaveNewRecordsToSQLite(ctx context.Context, bsMap map[cid.Cid][]byte, newBlocks map[cid.Cid][]byte, root cid.Cid, dbPath string) error {
+	r, err := BlockstoreToRepo(ctx, bsMap, root)
+	if err != nil {
+		return fmt.Errorf("failed to convert blockstore to repo: %w", err)
+	}
+
+	db, err := InitSQLite(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to init sqlite: %w", err)
+	}
+
+	return r.MST.Walk(func(k []byte, v cid.Cid) error {
+		if _, isNew := newBlocks[v]; !isNew {
+			return nil
+		}
+
+		col, rkey, err := syntax.ParseRepoPath(string(k))
+		if err != nil {
+			return err
+		}
+		recBytes, _, err := r.GetRecordBytes(ctx, col, rkey)
+		if err != nil {
+			return err
+		}
+
+		rec, err := data.UnmarshalCBOR(recBytes)
+		if err != nil {
+			return err
+		}
+
+		recJSON, err := json.Marshal(rec)
+		if err != nil {
+			return err
+		}
+
+		dbRec := Record{
+			IndexedAt: time.Now(),
+			NSID:      col.String(),
+			RKey:      rkey.String(),
+			CID:       v.String(),
+			Record:    string(recJSON),
+		}
+
+		// Attempt to extract createdAt from the record
+		if ca, ok := rec["createdAt"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, ca); err == nil {
+				dbRec.CreatedAt = t
+			}
+		}
+
+		// Attempt to extract indexedAt from the record
+		if ca, ok := rec["indexedAt"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, ca); err == nil {
+				dbRec.IndexedAt = t
+			}
+		}
+
+		return db.Save(&dbRec).Error
+	})
+}
+
 func SaveRecordsToSQLite(ctx context.Context, r *indigoRepo.Repo, db *gorm.DB) error {
 	return r.MST.Walk(func(k []byte, v cid.Cid) error {
 		col, rkey, err := syntax.ParseRepoPath(string(k))
