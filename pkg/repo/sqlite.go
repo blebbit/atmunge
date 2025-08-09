@@ -20,9 +20,10 @@ import (
 
 type Record struct {
 	CreatedAt time.Time `gorm:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at"`
 	IndexedAt time.Time `gorm:"indexed_at"`
-	NSID      string    `gorm:"nsid;primaryKey"`
-	RKey      string    `gorm:"rkey;primaryKey"`
+	NSID      string    `gorm:"column:nsid;primaryKey"`
+	RKey      string    `gorm:"column:rkey;primaryKey"`
 	Record    string    `gorm:"record"`
 }
 
@@ -101,6 +102,13 @@ func SaveRecordsToSQLite(ctx context.Context, r *indigoRepo.Repo, db *gorm.DB) e
 		if ca, ok := rec["createdAt"].(string); ok {
 			if t, err := time.Parse(time.RFC3339, ca); err == nil {
 				dbRec.CreatedAt = t
+			}
+		}
+
+		// Attempt to extract indexedAt from the record
+		if ca, ok := rec["indexedAt"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, ca); err == nil {
+				dbRec.IndexedAt = t
 			}
 		}
 
