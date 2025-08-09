@@ -133,6 +133,7 @@ func (r *Runtime) processRepoSync(did string) error {
 
 	var newRootCid cid.Cid
 	var newestRev string
+	var newestBlocks map[cid.Cid][]byte
 
 	val := atdb.AccountRepo{
 		DID: did,
@@ -150,7 +151,7 @@ func (r *Runtime) processRepoSync(did string) error {
 
 	// if we have updates, merge them
 	if len(updateCarData) > 0 {
-		newRootCid, newestRev, err = repo.MergeUpdate(blockstoreMem, updateCarData)
+		newRootCid, newestRev, newestBlocks, err = repo.MergeUpdate(blockstoreMem, updateCarData)
 		if err != nil {
 			return fmt.Errorf("failed to merge update for %s: %w", did, err)
 		}

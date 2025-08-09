@@ -36,6 +36,36 @@ type Commit struct {
 	Sig     []byte   `cbor:"sig"`
 }
 
+type PlcInfo struct {
+	DID      string `json:"did"`
+	PDSHost  string `json:"pds"`
+	Handle   string `json:"handle"`
+	PlcTime  string `json:"plcTime"`
+	LastTime string `json:"lastTime"`
+}
+
+// GetPlcInfo fetches account information from the PLC directory.
+// this can probably come from the database, or even during lookup, we could pluck more than did
+// for now, this means the repo commands work while the backfill command remains to be optimized
+func GetPlcInfo(account string) (*PlcInfo, error) {
+	plcURL := fmt.Sprintf("https://plc.blebbit.dev/info/%s", account)
+	resp, err := http.Get(plcURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account info from PLC: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get account info from PLC: %s, body: %s", resp.Status, string(body))
+	}
+
+	var plcInfo PlcInfo
+	if err := json.NewDecoder(resp.Body).Decode(&plcInfo); err != nil {
+		return nil, fmt.Errorf("failed to decode PLC info response: %w", err)
+	}
+	return &plcInfo, nil
+}
+
 // GetRepo fetches a repo's CAR file from a PDS.
 // NOTE: We now pass the most recent commit TID (rev) as the `since` parameter
 // instead of the root CID.
@@ -146,36 +176,6 @@ func tryExtractRev(raw []byte) (string, bool) {
 	return "", false
 }
 
-type PlcInfo struct {
-	DID      string `json:"did"`
-	PDSHost  string `json:"pds"`
-	Handle   string `json:"handle"`
-	PlcTime  string `json:"plcTime"`
-	LastTime string `json:"lastTime"`
-}
-
-// GetPlcInfo fetches account information from the PLC directory.
-// this can probably come from the database, or even during lookup, we could pluck more than did
-// for now, this means the repo commands work while the backfill command remains to be optimized
-func GetPlcInfo(account string) (*PlcInfo, error) {
-	plcURL := fmt.Sprintf("https://plc.blebbit.dev/info/%s", account)
-	resp, err := http.Get(plcURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get account info from PLC: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("failed to get account info from PLC: %s, body: %s", resp.Status, string(body))
-	}
-
-	var plcInfo PlcInfo
-	if err := json.NewDecoder(resp.Body).Decode(&plcInfo); err != nil {
-		return nil, fmt.Errorf("failed to decode PLC info response: %w", err)
-	}
-	return &plcInfo, nil
-}
-
 // LoadLocalCar loads an existing CAR file, returning its blocks and the latest commit TID.
 func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 	blockstoreMem := make(map[cid.Cid][]byte)
@@ -188,7 +188,7 @@ func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 	}
 	defer f.Close()
 
-	// fmt.Println("## Local repo found. Loading existing CAR...")
+	// create a block reader, possibly with an existing car file
 	br, err := car.NewBlockReader(f)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to read existing CAR: %w", err)
@@ -211,24 +211,21 @@ func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 		}
 	}
 
-	// if latestRev != "" {
-	// 	fmt.Printf("Most recent commit TID (rev) in local CAR: %s\n", latestRev)
-	// } else {
-	// 	fmt.Println("No commit rev found in existing CAR; full sync will be performed.")
-	// }
-
 	return blockstoreMem, latestRev, nil
 }
 
 // MergeUpdate reads blocks from an update CAR, adds them to the block map,
 // and returns the new root CID and the latest commit TID from the update.
-func MergeUpdate(blockstoreMem map[cid.Cid][]byte, updateCarData []byte) (cid.Cid, string, error) {
+func MergeUpdate(blockstoreMem map[cid.Cid][]byte, updateCarData []byte) (cid.Cid, string, map[cid.Cid][]byte, error) {
+	newBlocks := make(map[cid.Cid][]byte)
 	updateBR, err := car.NewBlockReader(bytes.NewReader(updateCarData))
 	if err != nil {
-		return cid.Undef, "", fmt.Errorf("failed to parse fetched CAR: %w", err)
+		return cid.Undef, "", nil, fmt.Errorf("failed to parse fetched CAR: %w", err)
 	}
 	if len(updateBR.Roots) == 0 {
-		return cid.Undef, "", fmt.Errorf("fetched CAR has no roots")
+		// This can happen with an empty diff when a repo is up-to-date.
+		// It's not an error, just means no new blocks.
+		return cid.Undef, "", newBlocks, nil
 	}
 	newRootCid := updateBR.Roots[0]
 	var newestRev string
@@ -238,20 +235,15 @@ func MergeUpdate(blockstoreMem map[cid.Cid][]byte, updateCarData []byte) (cid.Ci
 			break
 		}
 		if err != nil {
-			return cid.Undef, "", fmt.Errorf("failed reading block from fetched CAR: %w", err)
+			return cid.Undef, "", nil, fmt.Errorf("failed reading block from fetched CAR: %w", err)
 		}
 		blockstoreMem[blk.Cid()] = blk.RawData()
+		newBlocks[blk.Cid()] = blk.RawData()
 		if rev, ok := tryExtractRev(blk.RawData()); ok {
 			newestRev = rev
-			// fmt.Printf("Found commit block CID=%s rev=%s (treating as latest)\n", blk.Cid(), rev)
 		}
 	}
-	// if newestRev != "" {
-	// 	fmt.Printf("Most recent commit rev (TID) from fetched CAR: %s\n", newestRev)
-	// } else {
-	// 	fmt.Println("Warning: No commit rev found in fetched CAR; future incremental sync may not work as expected.")
-	// }
-	return newRootCid, newestRev, nil
+	return newRootCid, newestRev, newBlocks, nil
 }
 
 // WriteCar writes the given blocks to a CAR file, atomically replacing the destination file.
@@ -283,7 +275,6 @@ func WriteCar(filePath string, rootCid cid.Cid, blockstoreMem map[cid.Cid][]byte
 	if err := os.Rename(tempPath, filePath); err != nil {
 		return fmt.Errorf("failed replacing CAR file: %w", err)
 	}
-	// fmt.Println("Wrote merged CAR with root", rootCid, "to", filePath)
 	return nil
 }
 
