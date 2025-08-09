@@ -1,16 +1,13 @@
 # Copilot Instructions
 
-`at-mirror` is a Golang CLI tool for backfilling and syncing the ATProtocol network.
-
-## Responses, Replies, and Tone
-
 - Avoid apologizing or making conciliatory statements.
 - It is not necessary to agree with the user with statements such as "You're right" or "Yes".
 - Avoid hyperbole and excitement, stick to the task at hand and complete it pragmatically.
-- You do not need to be so verbose when telling me what you are going to do. You do not need to then tell me what you just did.
+- You do not need to be so verbose when telling me what you are going to do.
+- You do not need to then tell me what you just did.
 - Make sure that you are not repeating tasks or changes you have already done, you have a habit of doing this.
 - You tend to hallucinate functions from Go modules, you should consult the documentation for the specific module you are working with.
-- Ensure your changes compile by using the helpful command below.
+- Ensure your changes compile by running `go run ./cmd/at-mirror`.
 
 ## Helpful links and context for ATProtocol
 
@@ -21,6 +18,8 @@ You should fetch and consult these web resources as needed.
 - [ATProtocol GitHub Repository](https://github.com/bluesky-social/atproto)
 
 ## Overview of the Codebase
+
+`at-mirror` is a Golang CLI tool for backfilling and syncing the ATProtocol network.
 
 If you add or remove a file, you should update this section accordingly.
 
