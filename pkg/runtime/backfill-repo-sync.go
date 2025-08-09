@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sync/atomic"
@@ -56,7 +57,7 @@ func (r *Runtime) BackfillRepoSync(par int, start string) error {
 		var batch atomic.Int64
 		var batchErr atomic.Int64
 
-		dids, err := r.getRandomSetToProcess("account_repos", start, "updated_at", 500)
+		dids, err := r.getRandomSetToProcess("account_repos", start, "updated_at", 50)
 		if err != nil {
 			return fmt.Errorf("failed to get random repo syncs: %w", err)
 		}
@@ -117,11 +118,13 @@ func (r *Runtime) processRepoSync(did string) error {
 		return fmt.Errorf("failed to create data directory %s: %w", dataDir, err)
 	}
 	localCarFile := fmt.Sprintf("%s/%s.car", dataDir, did)
-
 	// load local CAR from disk
 	blockstoreMem, sinceTID, err := repo.LoadLocalCar(localCarFile)
 	if err != nil {
-		return fmt.Errorf("failed to load local CAR for %s: %w", did, err)
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("failed to load local CAR for %s: %w", did, err)
+		}
+		// if the file doesn't exist, we can continue, it's a new repo
 	}
 
 	// get updated CAR data from PDS
@@ -146,6 +149,7 @@ func (r *Runtime) processRepoSync(did string) error {
 
 	// if we have updates, merge them
 	if len(updateCarData) > 0 {
+
 		newRootCid, newestRev, newBlocks, err := repo.MergeUpdate(blockstoreMem, updateCarData)
 		if err != nil {
 			return fmt.Errorf("failed to merge update for %s: %w", did, err)

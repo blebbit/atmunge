@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/blebbit/at-mirror/pkg/repo"
+	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +18,11 @@ var repoSyncCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		account := args[0]
 
+		rt, err := runtime.NewRuntime(cmd.Context())
+		if err != nil {
+			log.Fatalf("failed to create runtime: %v", err)
+		}
+
 		plcInfo, err := repo.GetPlcInfo(account)
 		if err != nil {
 			log.Fatalf("failed to get PLC info: %v", err)
@@ -25,7 +32,7 @@ var repoSyncCmd = &cobra.Command{
 		pdsHost := plcInfo.PDSHost
 		fmt.Printf("Syncing for %s (DID: %s) from PDS: %s\n", plcInfo.Handle, targetDID, pdsHost)
 
-		dataDir := "data"
+		dataDir := rt.Cfg.RepoDataDir
 		if err := os.MkdirAll(dataDir, 0o755); err != nil {
 			log.Fatalf("failed to create data directory: %v", err)
 		}
@@ -33,7 +40,10 @@ var repoSyncCmd = &cobra.Command{
 
 		blockstoreMem, sinceTID, err := repo.LoadLocalCar(localCarFile)
 		if err != nil {
-			log.Fatalf("failed to load local CAR: %v", err)
+			if !errors.Is(err, os.ErrNotExist) {
+				log.Fatalf("failed to load local CAR for %s: %w", targetDID, err)
+			}
+			// if the file doesn't exist, we can continue, it's a new repo
 		}
 		if sinceTID == "" {
 			fmt.Println("## No local repo found or no rev found. Performing initial sync...")
@@ -62,5 +72,8 @@ var repoSyncCmd = &cobra.Command{
 		if err := repo.WriteCar(localCarFile, newRootCid, blockstoreMem); err != nil {
 			log.Fatalf("failed to write CAR file: %v", err)
 		}
+
+		fmt.Printf("Successfully synced %s. New root CID: %s, newest rev: %s\n", targetDID, newRootCid, newestRev)
+		fmt.Printf("Local CAR file written to: %s\n", localCarFile)
 	},
 }

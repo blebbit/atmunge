@@ -179,7 +179,8 @@ func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 
 	br, err := OpenCarBlockReader(filePath)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to open CAR as block reader: %w", err)
+		// we do want to return an initialized blockstore, even when erroring
+		return blockstoreMem, "", fmt.Errorf("failed to open CAR as block reader: %w", err)
 	}
 
 	var latestRev string
