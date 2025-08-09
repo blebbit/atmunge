@@ -26,6 +26,12 @@ func (r *Runtime) BackfillRepoSync(par int, start string) error {
 	// If so, we can skip accounts without fetching CAR to see if there are updates
 	// Since we cascade the backfill process, one of the prior processes or tables may have the latest revision
 
+	// XXX this process probably does not account for when...
+	// 1. we run an update AND there are new accounts
+	// 2. right now we split the logic
+	// we really want to have it be seamless
+	// for now we could run it twice, once in each mode, this should be equivalent
+
 	// get total count of AccountRepo entries to process for progress reporting
 	count, err := r.countRemainingToProcess("account_repos", start, "updated_at")
 	if err != nil {
