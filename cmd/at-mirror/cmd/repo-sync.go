@@ -49,7 +49,7 @@ var repoSyncCmd = &cobra.Command{
 		}
 		fmt.Printf("Fetched %d bytes of CAR data. Merging...\n", len(updateCarData))
 
-		newRootCid, newestRev, err := repo.MergeUpdate(blockstoreMem, updateCarData)
+		newRootCid, newestRev, _, err := repo.MergeUpdate(blockstoreMem, updateCarData)
 		if err != nil {
 			log.Fatalf("failed to merge update: %v", err)
 		}
