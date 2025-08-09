@@ -75,6 +75,14 @@ func RepoToSQLite(r *indigoRepo.Repo, dbPath string) error {
 	return SaveRecordsToSQLite(context.Background(), r, db)
 }
 
+func BlockstoreToSQLite(ctx context.Context, bsMap map[cid.Cid][]byte, root cid.Cid, dbPath string) error {
+	r, err := BlockstoreToRepo(ctx, bsMap, root)
+	if err != nil {
+		return fmt.Errorf("failed to convert blockstore to repo: %w", err)
+	}
+	return RepoToSQLite(r, dbPath)
+}
+
 func SaveRecordsToSQLite(ctx context.Context, r *indigoRepo.Repo, db *gorm.DB) error {
 	return r.MST.Walk(func(k []byte, v cid.Cid) error {
 		col, rkey, err := syntax.ParseRepoPath(string(k))

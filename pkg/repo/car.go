@@ -320,3 +320,43 @@ func ReadRepoFromCar(r io.Reader) (*indigoRepo.Repo, error) {
 
 	return repo, nil
 }
+
+func BlockstoreToRepo(ctx context.Context, bsMap map[cid.Cid][]byte, root cid.Cid) (*indigoRepo.Repo, error) {
+	bs := indigoRepo.NewTinyBlockstore()
+	for c, data := range bsMap {
+		b, err := blocks.NewBlockWithCid(data, c)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct block for %s: %w", c, err)
+		}
+		if err := bs.Put(ctx, b); err != nil {
+			return nil, fmt.Errorf("failed to put block in blockstore: %v", err)
+		}
+	}
+
+	commitBlock, err := bs.Get(ctx, root)
+	if err != nil {
+		return nil, fmt.Errorf("commit block not found in blockstore: %v", err)
+	}
+
+	var commit indigoRepo.Commit
+	if err := commit.UnmarshalCBOR(bytes.NewReader(commitBlock.RawData())); err != nil {
+		return nil, fmt.Errorf("parsing commit block from blockstore: %v", err)
+	}
+	if err := commit.VerifyStructure(); err != nil {
+		return nil, fmt.Errorf("verifying commit block from blockstore: %v", err)
+	}
+
+	tree, err := mst.LoadTreeFromStore(ctx, bs, commit.Data)
+	if err != nil {
+		return nil, fmt.Errorf("reading MST from blockstore: %v", err)
+	}
+	clk := syntax.ClockFromTID(syntax.TID(commit.Rev))
+	repo := &indigoRepo.Repo{
+		DID:         syntax.DID(commit.DID), // NOTE: VerifyStructure() already checked DID syntax
+		Clock:       &clk,
+		MST:         *tree,
+		RecordStore: bs,
+	}
+
+	return repo, nil
+}

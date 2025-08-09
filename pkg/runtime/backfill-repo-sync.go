@@ -162,7 +162,7 @@ func (r *Runtime) processRepoSync(did string) error {
 			// also write to sqlite
 			// TODO, should only write new records to database
 			sqlitePath := fmt.Sprintf("%s/%s.db", dataDir, did)
-			if err := repo.CarToSQLite(localCarFile, sqlitePath); err != nil {
+			if err := repo.BlockstoreToSQLite(r.Ctx, blockstoreMem, newRootCid, sqlitePath); err != nil {
 				log.Error().Err(err).Msgf("failed to convert CAR to SQLite for %s", did)
 				// deciding not to return error here, as the primary sync succeeded
 			}
