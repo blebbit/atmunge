@@ -21,32 +21,6 @@ import (
 	"github.com/bluesky-social/indigo/atproto/syntax"
 )
 
-// GetRepo fetches a repo's CAR file from a PDS.
-// NOTE: We now pass the most recent commit TID (rev) as the `since` parameter
-// instead of the root CID.
-func GetRepo(pdsHost, did, since string) ([]byte, error) {
-	endpoint, _ := url.Parse(pdsHost)
-	endpoint.Path = "/xrpc/com.atproto.sync.getRepo"
-	queryParams := url.Values{}
-	queryParams.Set("did", did)
-	if since != "" {
-		queryParams.Set("since", since)
-	}
-	endpoint.RawQuery = queryParams.Encode()
-
-	fmt.Printf("Fetching from: %s\n", endpoint.String())
-	resp, err := http.Get(endpoint.String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("bad response status: %s, body: %s", resp.Status, string(body))
-	}
-	return io.ReadAll(resp.Body)
-}
-
 type CarInfo struct {
 	Roots   []cid.Cid
 	Commits []Commit
@@ -60,6 +34,32 @@ type Commit struct {
 	Prev    *cid.Cid `cbor:"prev"`
 	DID     string   `cbor:"did"`
 	Sig     []byte   `cbor:"sig"`
+}
+
+// GetRepo fetches a repo's CAR file from a PDS.
+// NOTE: We now pass the most recent commit TID (rev) as the `since` parameter
+// instead of the root CID.
+func GetRepo(pdsHost, did, since string) ([]byte, error) {
+	endpoint, _ := url.Parse(pdsHost)
+	endpoint.Path = "/xrpc/com.atproto.sync.getRepo"
+	queryParams := url.Values{}
+	queryParams.Set("did", did)
+	if since != "" {
+		queryParams.Set("since", since)
+	}
+	endpoint.RawQuery = queryParams.Encode()
+
+	// fmt.Printf("Fetching from: %s\n", endpoint.String())
+	resp, err := http.Get(endpoint.String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("bad response status: %s, body: %s", resp.Status, string(body))
+	}
+	return io.ReadAll(resp.Body)
 }
 
 // GetCarInfo reads a CAR file and returns information about its roots and commits.
@@ -155,6 +155,8 @@ type PlcInfo struct {
 }
 
 // GetPlcInfo fetches account information from the PLC directory.
+// this can probably come from the database, or even during lookup, we could pluck more than did
+// for now, this means the repo commands work while the backfill command remains to be optimized
 func GetPlcInfo(account string) (*PlcInfo, error) {
 	plcURL := fmt.Sprintf("https://plc.blebbit.dev/info/%s", account)
 	resp, err := http.Get(plcURL)
@@ -186,7 +188,7 @@ func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 	}
 	defer f.Close()
 
-	fmt.Println("## Local repo found. Loading existing CAR...")
+	// fmt.Println("## Local repo found. Loading existing CAR...")
 	br, err := car.NewBlockReader(f)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to read existing CAR: %w", err)
@@ -209,11 +211,11 @@ func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 		}
 	}
 
-	if latestRev != "" {
-		fmt.Printf("Most recent commit TID (rev) in local CAR: %s\n", latestRev)
-	} else {
-		fmt.Println("No commit rev found in existing CAR; full sync will be performed.")
-	}
+	// if latestRev != "" {
+	// 	fmt.Printf("Most recent commit TID (rev) in local CAR: %s\n", latestRev)
+	// } else {
+	// 	fmt.Println("No commit rev found in existing CAR; full sync will be performed.")
+	// }
 
 	return blockstoreMem, latestRev, nil
 }
@@ -241,14 +243,14 @@ func MergeUpdate(blockstoreMem map[cid.Cid][]byte, updateCarData []byte) (cid.Ci
 		blockstoreMem[blk.Cid()] = blk.RawData()
 		if rev, ok := tryExtractRev(blk.RawData()); ok {
 			newestRev = rev
-			fmt.Printf("Found commit block CID=%s rev=%s (treating as latest)\n", blk.Cid(), rev)
+			// fmt.Printf("Found commit block CID=%s rev=%s (treating as latest)\n", blk.Cid(), rev)
 		}
 	}
-	if newestRev != "" {
-		fmt.Printf("Most recent commit rev (TID) from fetched CAR: %s\n", newestRev)
-	} else {
-		fmt.Println("Warning: No commit rev found in fetched CAR; future incremental sync may not work as expected.")
-	}
+	// if newestRev != "" {
+	// 	fmt.Printf("Most recent commit rev (TID) from fetched CAR: %s\n", newestRev)
+	// } else {
+	// 	fmt.Println("Warning: No commit rev found in fetched CAR; future incremental sync may not work as expected.")
+	// }
 	return newRootCid, newestRev, nil
 }
 
@@ -281,7 +283,7 @@ func WriteCar(filePath string, rootCid cid.Cid, blockstoreMem map[cid.Cid][]byte
 	if err := os.Rename(tempPath, filePath); err != nil {
 		return fmt.Errorf("failed replacing CAR file: %w", err)
 	}
-	fmt.Println("Wrote merged CAR with root", rootCid, "to", filePath)
+	// fmt.Println("Wrote merged CAR with root", rootCid, "to", filePath)
 	return nil
 }
 

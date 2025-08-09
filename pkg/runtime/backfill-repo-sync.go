@@ -16,6 +16,17 @@ import (
 	"github.com/blebbit/at-mirror/pkg/repo"
 )
 
+// we should build a channel into this
+// some downloads take longer for various reasons
+// we should keep the belt full (like factorio)
+
+// XXX the counts are off too, by 20% it seems like, not sure what's up with that...
+//     I suspect the parallel module, let's try writing our own goroutines instead
+
+// XXX we also need to handle account status responses here
+//     between the time we filter and then download CARs
+//     the account may have been deleted or taken down
+
 func (r *Runtime) BackfillRepoSync(par int, start string) error {
 	log := zerolog.Ctx(r.Ctx).With().Str("module", "repo-sync").Logger()
 
@@ -38,8 +49,15 @@ func (r *Runtime) BackfillRepoSync(par int, start string) error {
 		return fmt.Errorf("failed to count repo syncs: %w", err)
 	}
 
+	// TODO, have both per batch and run stats
+	var total atomic.Int64
+	var totalErr atomic.Int64
+
 	for {
-		dids, err := r.getRandomSetToProcess("account_repos", start, "updated_at", 10)
+		var batch atomic.Int64
+		var batchErr atomic.Int64
+
+		dids, err := r.getRandomSetToProcess("account_repos", start, "updated_at", 500)
 		if err != nil {
 			return fmt.Errorf("failed to get random repo syncs: %w", err)
 		}
@@ -50,21 +68,26 @@ func (r *Runtime) BackfillRepoSync(par int, start string) error {
 			break
 		}
 
-		var total atomic.Int64
-
 		for index := 0; index < len(dids); index++ {
 			group.Go(func(ctx context.Context) {
 				err := r.processRepoSync(dids[index])
 				total.Add(1)
+				batch.Add(1)
 
 				if err != nil {
+					totalErr.Add(1)
+					batchErr.Add(1)
 					log.Error().Err(err).Msgf("Failed to process repo sync for %s: %v", dids[index], err)
 					return
 				}
 			})
 		}
 
-		log.Info().Msgf("Processing %d/%d repos", total.Load(), count)
+		log.Info().Msgf("Processing %d/%d repos. Batch: %d/%d Error: %d/%d",
+			total.Load(), count,
+			batch.Load(), len(dids),
+			batchErr.Load(), totalErr.Load(),
+		)
 	}
 
 	return nil
@@ -133,7 +156,7 @@ func (r *Runtime) processRepoSync(did string) error {
 		}
 
 		// this second check is a possible edge case or shouldn't happen logically, let's be defensively programming anyhow
-		if newestRev == "" {
+		if newestRev != "" {
 			val.LastChanged = time.Now()
 			val.Rev = newestRev
 			if err := repo.WriteCar(localCarFile, newRootCid, blockstoreMem); err != nil {
