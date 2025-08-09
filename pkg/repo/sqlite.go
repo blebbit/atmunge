@@ -63,6 +63,10 @@ func CarToSQLite(carPath string, dbPath string) error {
 		return fmt.Errorf("failed to read repo from car: %w", err)
 	}
 
+	return RepoToSQLite(r, dbPath)
+}
+
+func RepoToSQLite(r *indigoRepo.Repo, dbPath string) error {
 	db, err := InitSQLite(dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to init sqlite: %w", err)
