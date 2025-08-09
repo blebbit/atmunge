@@ -24,6 +24,7 @@ type Record struct {
 	IndexedAt time.Time `gorm:"indexed_at"`
 	NSID      string    `gorm:"column:nsid;primaryKey"`
 	RKey      string    `gorm:"column:rkey;primaryKey"`
+	CID       string    `gorm:"column:cid;primaryKey"`
 	Record    string    `gorm:"record"`
 }
 
@@ -95,6 +96,7 @@ func SaveRecordsToSQLite(ctx context.Context, r *indigoRepo.Repo, db *gorm.DB) e
 			IndexedAt: time.Now(),
 			NSID:      col.String(),
 			RKey:      rkey.String(),
+			CID:       v.String(),
 			Record:    string(recJSON),
 		}
 
