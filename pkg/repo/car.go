@@ -92,8 +92,7 @@ func GetRepo(pdsHost, did, since string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-// GetCarInfo reads a CAR file and returns information about its roots and commits.
-func GetCarInfo(filePath string) (*CarInfo, error) {
+func OpenCarBlockReader(filePath string) (*car.BlockReader, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open car file: %w", err)
@@ -105,6 +104,16 @@ func GetCarInfo(filePath string) (*CarInfo, error) {
 		return nil, fmt.Errorf("failed to create block reader: %w", err)
 	}
 
+	return br, nil
+}
+
+// GetCarInfo reads a CAR file and returns information about its roots and commits.
+func GetCarInfo(filePath string) (*CarInfo, error) {
+	br, err := OpenCarBlockReader(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open CAR as block reader: %w", err)
+	}
+
 	info := &CarInfo{
 		Roots: br.Roots,
 	}
@@ -113,18 +122,6 @@ func GetCarInfo(filePath string) (*CarInfo, error) {
 		return info, nil
 	}
 	commitCid := br.Roots[0]
-
-	// Reset file reader to search for the commit block from the beginning
-	_, err = f.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, fmt.Errorf("failed to seek in car file: %w", err)
-	}
-
-	// Re-initialize block reader
-	br, err = car.NewBlockReader(f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to re-create block reader: %w", err)
-	}
 
 	for {
 		blk, err := br.Next()
@@ -179,19 +176,10 @@ func tryExtractRev(raw []byte) (string, bool) {
 // LoadLocalCar loads an existing CAR file, returning its blocks and the latest commit TID.
 func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 	blockstoreMem := make(map[cid.Cid][]byte)
-	f, err := os.Open(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return blockstoreMem, "", nil // Not an error, just no local file
-		}
-		return nil, "", fmt.Errorf("failed stating local CAR: %w", err)
-	}
-	defer f.Close()
 
-	// create a block reader, possibly with an existing car file
-	br, err := car.NewBlockReader(f)
+	br, err := OpenCarBlockReader(filePath)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to read existing CAR: %w", err)
+		return nil, "", fmt.Errorf("failed to open CAR as block reader: %w", err)
 	}
 
 	var latestRev string

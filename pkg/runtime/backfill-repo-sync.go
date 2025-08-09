@@ -7,7 +7,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ipfs/go-cid"
 	"github.com/rs/zerolog"
 	"github.com/wandb/parallel"
 	"gorm.io/gorm/clause"
@@ -131,10 +130,6 @@ func (r *Runtime) processRepoSync(did string) error {
 		return fmt.Errorf("failed to fetch repo data for %s: %w", did, err)
 	}
 
-	var newRootCid cid.Cid
-	var newestRev string
-	var newestBlocks map[cid.Cid][]byte
-
 	val := atdb.AccountRepo{
 		DID: did,
 	}
@@ -151,7 +146,7 @@ func (r *Runtime) processRepoSync(did string) error {
 
 	// if we have updates, merge them
 	if len(updateCarData) > 0 {
-		newRootCid, newestRev, newestBlocks, err = repo.MergeUpdate(blockstoreMem, updateCarData)
+		newRootCid, newestRev, _ /*newestBlocks*/, err := repo.MergeUpdate(blockstoreMem, updateCarData)
 		if err != nil {
 			return fmt.Errorf("failed to merge update for %s: %w", did, err)
 		}
@@ -165,6 +160,7 @@ func (r *Runtime) processRepoSync(did string) error {
 			}
 
 			// also write to sqlite
+			// TODO, should only write new records to database
 			sqlitePath := fmt.Sprintf("%s/%s.db", dataDir, did)
 			if err := repo.CarToSQLite(localCarFile, sqlitePath); err != nil {
 				log.Error().Err(err).Msgf("failed to convert CAR to SQLite for %s", did)
