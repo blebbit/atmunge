@@ -29,7 +29,7 @@ require (
 	golang.org/x/time v0.12.0
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	gorm.io/driver/postgres v1.5.7
-	gorm.io/gorm v1.25.10
+	gorm.io/gorm v1.30.0
 )
 
 require (
@@ -81,6 +81,7 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect
@@ -119,5 +120,6 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
+	gorm.io/driver/sqlite v1.6.0 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
