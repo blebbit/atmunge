@@ -24,14 +24,14 @@ func (r *Runtime) BackfillDescribeRepo(par int, start string) error {
 	group := parallel.Limited(r.Ctx, par)
 
 	// get total count of PdsRepo entries to process for progress reporting
-	count, err := r.countRemainingToProcess("account_infos", start)
+	count, err := r.countRemainingToProcess("account_infos", start, "updated_at")
 	if err != nil {
 		return fmt.Errorf("failed to count repo describes: %w", err)
 	}
 
 	for {
 
-		ids, err := r.getRandomSetToProcess("account_infos", start, 1000)
+		ids, err := r.getRandomSetToProcess("account_infos", start, "updated_at", 1000)
 		if err != nil {
 			return fmt.Errorf("failed to get random repo describes: %w", err)
 		}

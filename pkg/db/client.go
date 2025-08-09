@@ -63,12 +63,16 @@ func MigrateModels(db *gorm.DB) error {
 	if err := db.AutoMigrate(&PdsRepo{}); err != nil {
 		return fmt.Errorf("auto-migrating DB schema: %w", err)
 	}
+	if err := db.AutoMigrate(&AccountRepo{}); err != nil {
+		return fmt.Errorf("auto-migrating DB schema: %w", err)
+	}
 
 	return nil
 }
 
 func ClearTables(db *gorm.DB) error {
 	tables := []string{
+		"account_repos",
 		"plc_log_entries",
 		"account_infos",
 		"pds_repos",

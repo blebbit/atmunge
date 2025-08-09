@@ -3,17 +3,18 @@ package runtime
 import (
 	"fmt"
 
-	atdb "github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/at-mirror/pkg/db"
 )
 
-// WARNING: table name should not come from user input, this is for internal use only
-func (r *Runtime) countRemainingToProcess(table string, start string) (int, error) {
-	q := r.DB.Model(&atdb.PdsRepo{}).Where("active = true")
+// WARNING: args should not come from user input, this is for internal use only
+// likely susceptible to SQL injection
+func (r *Runtime) countRemainingToProcess(table string, start, startWhen string) (int, error) {
+	q := r.DB.Model(&db.PdsRepo{}).Where("active = true")
 
 	if start == "" {
 		q = q.Where(fmt.Sprint("NOT EXISTS (SELECT 1 FROM %s WHERE %s.did = pds_repos.did)", table, table))
 	} else {
-		q = q.Where("updated_at < ?", start)
+		q = q.Where(startWhen+" < ?", start)
 	}
 
 	var count int64
@@ -25,17 +26,18 @@ func (r *Runtime) countRemainingToProcess(table string, start string) (int, erro
 	return int(count), nil
 }
 
-// WARNING: table name should not come from user input, this is for internal use only
-func (r *Runtime) getRandomSetToProcess(table string, start string, limit int) ([]string, error) {
+// WARNING: args should not come from user input, this is for internal use only
+// likely susceptible to SQL injection
+func (r *Runtime) getRandomSetToProcess(table string, start, startWhen string, limit int) ([]string, error) {
 	// fetch all PdsRepo entries that have no corresponding AccountInfo entry
 	var ids []string
 
-	q := r.DB.Model(&atdb.PdsRepo{}).Where("active = true")
+	q := r.DB.Model(&db.PdsRepo{}).Where("active = true")
 
 	if start == "" {
 		q = q.Where(fmt.Sprint("NOT EXISTS (SELECT 1 FROM %s WHERE %s.did = pds_repos.did)", table, table))
 	} else {
-		q = q.Where("updated_at < ?", start)
+		q = q.Where(startWhen+" < ?", start)
 	}
 
 	q = q.Order("RANDOM()").Limit(limit)

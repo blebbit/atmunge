@@ -98,7 +98,9 @@ type AccountInfo struct {
 type AccountRepo struct {
 	DID string `gorm:"primarykey;column:did;index:did_timestamp;uniqueIndex:did"`
 
-	Rev       string `gorm:"column:rev;index:idx_rev"`
+	Rev         string `gorm:"column:rev;index:idx_rev"`
+	LastChanged time.Time
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time
