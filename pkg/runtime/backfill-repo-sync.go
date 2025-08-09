@@ -39,28 +39,28 @@ func (r *Runtime) BackfillRepoSync(par int, start string) error {
 	}
 
 	for {
-		ids, err := r.getRandomSetToProcess("account_repos", start, "updated_at", 1000)
+		dids, err := r.getRandomSetToProcess("account_repos", start, "updated_at", 10)
 		if err != nil {
 			return fmt.Errorf("failed to get random repo syncs: %w", err)
 		}
 
 		// if no more entries, we are done
-		if len(ids) == 0 {
+		if len(dids) == 0 {
 			log.Info().Msgf("No AccountRepo entries found to sync, exiting")
 			break
 		}
 
 		var total atomic.Int64
 
-		for index := 0; index < len(ids); index++ {
+		for index := 0; index < len(dids); index++ {
 			group.Go(func(ctx context.Context) {
-				err := r.processRepoSync(ids[index])
+				err := r.processRepoSync(dids[index])
+				total.Add(1)
+
 				if err != nil {
-					log.Error().Err(err).Msgf("Failed to process repo sync for %s", ids[index])
+					log.Error().Err(err).Msgf("Failed to process repo sync for %s: %v", dids[index], err)
 					return
 				}
-
-				total.Add(1)
 			})
 		}
 

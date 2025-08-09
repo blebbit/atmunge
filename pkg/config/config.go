@@ -17,7 +17,7 @@ type Config struct {
 	PlcFilter   bool   `split_words:"true" default:"false"`
 
 	// repo config
-	RepoDataDir string `split_words:"true" default:"/data/repos"`
+	RepoDataDir string `split_words:"true" default:"./data/repos"`
 
 	// server config
 	RunPlcMirror  bool   `split_words:"true" default:"true"`

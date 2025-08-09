@@ -31,24 +31,24 @@ func (r *Runtime) BackfillDescribeRepo(par int, start string) error {
 
 	for {
 
-		ids, err := r.getRandomSetToProcess("account_infos", start, "updated_at", 1000)
+		dids, err := r.getRandomSetToProcess("account_infos", start, "updated_at", 1000)
 		if err != nil {
 			return fmt.Errorf("failed to get random repo describes: %w", err)
 		}
 
 		// if no more entries, we are done
-		if len(ids) == 0 {
+		if len(dids) == 0 {
 			log.Info().Msgf("No PdsRepo entries found to fetch, exiting")
 			break
 		}
 
 		var total atomic.Int64
 
-		for index := 0; index < len(ids); index++ {
+		for index := 0; index < len(dids); index++ {
 			group.Go(func(ctx context.Context) {
-				err := r.processRepoDescribe(ids[index])
+				err := r.processRepoDescribe(dids[index])
 				if err != nil {
-					log.Error().Err(err).Msgf("Failed to process repo %s", ids[index])
+					log.Error().Err(err).Msgf("Failed to process repo %s", dids[index])
 					return
 				}
 
@@ -62,13 +62,13 @@ func (r *Runtime) BackfillDescribeRepo(par int, start string) error {
 	return nil
 }
 
-func (r *Runtime) processRepoDescribe(id string) error {
+func (r *Runtime) processRepoDescribe(did string) error {
 	log := zerolog.Ctx(r.Ctx).With().Str("module", "repo-describe").Logger()
 
 	// get the next PdsRepo entry to process
 	var row atdb.PdsRepo
 	err := r.DB.Model(&atdb.PdsRepo{}).
-		Where("id = ?", id).
+		Where("did = ?", did).
 		First(&row).Error
 	if err != nil {
 		return fmt.Errorf("failed to get PdsRepo entry: %w", err)
