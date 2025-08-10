@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var repoSqliteCmd = &cobra.Command{
-	Use:   "sqlite [car file]",
-	Short: "Convert a CAR file to an SQLite database",
+var repoDuckDBCmd = &cobra.Command{
+	Use:   "duckdb [car file]",
+	Short: "Convert a CAR file to a DuckDB database",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		carFile := args[0]
@@ -22,16 +22,16 @@ var repoSqliteCmd = &cobra.Command{
 		if output != "" {
 			dbPath = output
 		} else {
-			dbPath = strings.TrimSuffix(carFile, filepath.Ext(carFile)) + ".sqlite"
+			dbPath = strings.TrimSuffix(carFile, filepath.Ext(carFile)) + ".duckdb"
 		}
 
 		fmt.Printf("Converting %s to %s\n", carFile, dbPath)
-		if err := repo.CarToSQLite(carFile, dbPath); err != nil {
-			log.Fatalf("failed to convert CAR to SQLite: %v", err)
+		if err := repo.CarToDuckDB(carFile, dbPath); err != nil {
+			log.Fatalf("failed to convert CAR to DuckDB: %v", err)
 		}
 	},
 }
 
 func init() {
-	repoSqliteCmd.Flags().StringP("output", "o", "", "output file for sqlite db")
+	repoDuckDBCmd.Flags().StringP("output", "o", "", "output file for duckdb")
 }

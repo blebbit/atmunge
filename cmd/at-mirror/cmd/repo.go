@@ -18,4 +18,5 @@ func init() {
 	repoCmd.AddCommand(repoSyncCmd)
 	repoCmd.AddCommand(repoUnpackCmd)
 	repoCmd.AddCommand(repoSqliteCmd)
+	repoCmd.AddCommand(repoDuckDBCmd)
 }
