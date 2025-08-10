@@ -143,10 +143,7 @@ func (r *Runtime) BackfillPlcLogs() error {
 					}
 					bodyString := string(bodyBytes)
 					log.Error().Msgf("Response Body: %s", bodyString)
-					
-					errs++
-					break
-				}
+
 					errs++
 					break
 				}
