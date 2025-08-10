@@ -127,8 +127,26 @@ func (r *Runtime) BackfillPlcLogs() error {
 				}
 				if strings.Contains(err.Error(), "invalid character '<' looking") {
 					log.Error().Err(err).Msgf("parsing log entry: %s", err)
-					log.Error().Msgf("This is likely a temporary issue with the PLC server or URL...")
 					log.Error().Msgf("Try to manually fetch the logs from %q", u.String())
+					errs++
+					break
+				}
+				if strings.Contains(err.Error(), "unexpected EOF") {
+					log.Error().Err(err).Msgf("parsing log entry: %s", err)
+					log.Error().Msgf("Try to manually fetch the logs from %q", u.String())
+
+					bodyBytes, err := io.ReadAll(resp.Body)
+					if err != nil {
+						log.Error().Err(err).Msgf("Failed to read response body: %s", err)
+						errs++
+						break
+					}
+					bodyString := string(bodyBytes)
+					log.Error().Msgf("Response Body: %s", bodyString)
+					
+					errs++
+					break
+				}
 					errs++
 					break
 				}
