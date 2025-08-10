@@ -43,11 +43,11 @@ var runCmd = &cobra.Command{
 		}
 
 		// (maybe) start mirror
-		if r.Cfg.RunPlcMirror {
-			go func() {
-				r.StartPLCMirror()
-			}()
-		}
+		// if r.Cfg.RunPlcMirror {
+		// 	go func() {
+		// 		r.StartPLCMirror()
+		// 	}()
+		// }
 
 		s := server.NewServer(r)
 		// start server

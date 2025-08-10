@@ -13,7 +13,7 @@ type Config struct {
 	DBUrl       string `envconfig:"POSTGRES_URL"`
 
 	// plc config
-	PlcUpstream string `split_words:"true" default:"https://plc.directory"`
+	PlcUpstream string `split_words:"true" default:"https://plc.directory/export"`
 	PlcFilter   bool   `split_words:"true" default:"false"`
 
 	// repo config
