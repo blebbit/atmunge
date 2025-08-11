@@ -10,7 +10,7 @@ A collection of tools and utilities for backfilling, mirroring, and analyzing th
 
 ```sh
 # install the cli
-go install ./cmd/at-mirror
+CGO_ENABLED=1 go install ./cmd/at-mirror
 
 # setup the env
 cp env-example .env
@@ -65,15 +65,28 @@ at-mirror backfill pds-accounts
 #   describe repo (status + collections)
 #   (also writes to the pds_repos table to update status)
 at-mirror backfill describe-repo
+```
 
-# gets recent records for each collection, flags to config this (even longer...)
-at-mirror backfill recent-records
+Download Repos:
+
+```sh
+# WARN, this will chew up disk, you probably need around 10T for the CAR files (Aug'25)
+at-mirror backfill repo-sync
+
+# fetch CAR for an account
+at-mirror repo sync verdverm.com
+
+# convert to a database
+at-mirror repo duckdb ./data/repos/<did>.car
+at-mirror repo sqlite ./data/repos/<did>.car
 ```
 
 
 ## Serving
 
-You can serve you backfills as a unified API
+You can serve you backfills as a unified API,
+optionally with mirroring enabled so they stay up to date.
+
 
 
 ---

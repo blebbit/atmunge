@@ -1,5 +1,11 @@
-ATMIRROR_POSTGRES_URL="postgres://atmirror:atmirror@localhost:5432/atmirror?sslmode=disable"
+# Note the port here matches the docker-compose file
+ATMIRROR_POSTGRES_URL="postgres://atmirror:atmirror@localhost:5555/atmirror?sslmode=disable"
+
+# PLC Options
 ATMIRROR_PLC_FILTER=false
 ATMIRROR_PLC_FILTER_KEEP=true
 ATMIRROR_PLC_CONFLICT_UPDATE=false
 ATMIRROR_PLC_CONFLICT_KEEP=true
+
+# Repo Sync Options
+ATMIRROR_REPO_DATA_DIR=./data/repos
