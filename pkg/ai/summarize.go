@@ -9,22 +9,7 @@ import (
 
 const defaultSummarizeSystemPrompt = `You are an expert at summarizing social media posts.
 The user will provide you with the content of a post, and you will summarize it.
-The post content is a JSON object with the following structure:
-{
-  "uri": "at://did:plc:...",
-  "cid": "...",
-  "author": {
-    "did": "did:plc:...",
-    "handle": "handle.bsky.social",
-    "displayName": "display name",
-    "description": "description",
-    "avatar": "..."
-  },
-  "record": {
-    "text": "post text",
-    "createdAt": "..."
-  }
-}
+The post content is a JSON object.
 Your summary should be clear, concise, and easy to understand.
 Do not repeat the content of the post.
 Do not use jargon.
@@ -41,8 +26,7 @@ Do not use any formatting.
 Do not use quotes.
 Do not use links.
 Do not use any other information.
-Just summarize the post in a single paragraph.
-`
+Just summarize the post in a single paragraph.`
 
 // Summarize summarizes a post
 func (a *AI) Summarize(ctx context.Context, model, prompt, input string) error {
