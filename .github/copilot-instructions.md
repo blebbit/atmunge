@@ -48,56 +48,111 @@ go doc <package-name>.<type-name>
 
 If you add or remove a file, you should update this section accordingly.
 
-```
+```sh
 .
-├── cmd # the core command structure
-│   └── at-mirror
-│       ├── cmd
-│       └── main.go
-├── docker-compose.yml
 ├── Dockerfile
+├── LICENSE
+├── Makefile
+├── README.md
+├── cmd
+│   └── at-mirror
+│       ├── cmd
+│       │   ├── ai-chat.go
+│       │   ├── ai-complete.go
+│       │   ├── ai-embed.go
+│       │   ├── ai-explain.go
+│       │   ├── ai-hack.go
+│       │   ├── ai-reply.go
+│       │   ├── ai-safety.go
+│       │   ├── ai-topics.go
+│       │   ├── ai.go
+│       │   ├── backfill-describe-repo.go
+│       │   ├── backfill-pds-accounts.go
+│       │   ├── backfill-plc-logs.go
+│       │   ├── backfill-repo-sync.go
+│       │   ├── config.go
+│       │   ├── db-clear.go
+│       │   ├── db-migrate.go
+│       │   ├── db-reset.go
+│       │   ├── plc-annotate.go
+│       │   ├── repo-duckdb.go
+│       │   ├── repo-hack.go
+│       │   ├── repo-inspect.go
+│       │   ├── repo-ls.go
+│       │   ├── repo-mst.go
+│       │   ├── repo-sqlite.go
+│       │   ├── repo-sync.go
+│       │   ├── repo-unpack.go
+│       │   ├── repo-utils.go
+│       │   ├── repo.go
+│       │   ├── root.go
+│       │   └── run.go
+│       └── main.go
+├── docker-compose.yml
 ├── docs
-│   └── sources.md
+│   └── sources.md
+├── dsci
+│   └── plc
+│       ├── Makefile
+│       ├── README.md
+│       ├── plc-stats.ipynb
+│       └── pyproject.toml
 ├── env-example
 ├── go.mod
 ├── go.sum
-├── LICENSE
-├── Makefile
 ├── notes.md
-├── pkg # the reusable code, functions, and packages
-│   ├── config
-│   │   ├── config.go
-│   │   └── logging.go
-│   ├── db
-│   │   ├── client.go
-│   │   ├── helpers.go
-│   │   ├── models.go
-│   │   └── views.go
-│   ├── plc
-│   │   ├── cbor_gen.go
-│   │   ├── did_doc.go
-│   │   ├── gen
-│   │   └── structs.go
-│   ├── repo
-│   │   ├── car.go
-│   │   └── sqlite.go
-│   ├── runtime # holds most of the core business logic
-│   │   ├── backfill-describe-repo.go
-│   │   ├── backfill-get-repo.go
-│   │   ├── backfill-pds-accounts.go
-│   │   ├── backfill-repo-sync.go
-│   │   ├── const.go
-│   │   ├── metrics.go
-│   │   ├── plc.go
-│   │   ├── queries.go
-│   │   ├── repos.go
-│   │   ├── runtime.go
-│   │   └── utils.go
-│   ├── server
-│   │   ├── metrics.go
-│   │   └── server.go
-│   └── util
-│       ├── fix
-│       └── gormzerolog
-└── README.md
+├── pkg
+│   ├── ai
+│   │   ├── ai.go
+│   │   ├── chat.go
+│   │   ├── complete.go
+│   │   ├── embed.go
+│   │   ├── explain.go
+│   │   ├── hack.go
+│   │   ├── ollama
+│   │   │   ├── client.go
+│   │   │   └── structs.go
+│   │   ├── reply.go
+│   │   ├── safety.go
+│   │   └── topics.go
+│   ├── config
+│   │   ├── config.go
+│   │   └── logging.go
+│   ├── db
+│   │   ├── client.go
+│   │   ├── helpers.go
+│   │   ├── models.go
+│   │   └── views.go
+│   ├── plc
+│   │   ├── cbor_gen.go
+│   │   ├── did_doc.go
+│   │   ├── gen
+│   │   │   └── main.go
+│   │   └── structs.go
+│   ├── repo
+│   │   ├── car.go
+│   │   ├── duckdb.go
+│   │   └── sqlite.go
+│   ├── runtime
+│   │   ├── backfill-describe-repo.go
+│   │   ├── backfill-pds-accounts.go
+│   │   ├── backfill-repo-sync.go
+│   │   ├── const.go
+│   │   ├── metrics.go
+│   │   ├── plc.go
+│   │   ├── queries.go
+│   │   ├── repos.go
+│   │   ├── runtime.go
+│   │   └── utils.go
+│   ├── server
+│   │   ├── metrics.go
+│   │   └── server.go
+│   └── util
+│       ├── fix
+│       │   ├── postgres_json.go
+│       │   └── postgres_json_test.go
+│       └── gormzerolog
+│           └── logger.go
+├── pyproject.toml
+└── uv.lock
 ```
