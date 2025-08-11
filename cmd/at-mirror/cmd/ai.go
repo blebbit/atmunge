@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	aiCmd.PersistentFlags().String("model", "llama3", "The model to use")
+	aiCmd.PersistentFlags().String("model", "gemma3:4b", "The model to use")
 	aiCmd.PersistentFlags().String("prompt", "", "The system prompt to use")
 }
 
