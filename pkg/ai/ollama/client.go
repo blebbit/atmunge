@@ -264,7 +264,7 @@ func (c *Client) CreateBlob(ctx context.Context, digest string, data io.Reader) 
 
 // KeepAliveRequest is used to keep a model loaded in memory.
 type KeepAliveRequest struct {
-	Model    string `json:"model"`
+	Model     string `json:"model"`
 	KeepAlive string `json:"keep_alive"`
 }
 
@@ -272,8 +272,8 @@ type KeepAliveRequest struct {
 func (c *Client) LoadModel(ctx context.Context, model string, keepAlive string) error {
 	// Use generate endpoint with empty prompt to load the model
 	gReq := GenerateRequest{
-		Model:    model,
-		Prompt:   "",
+		Model:     model,
+		Prompt:    "",
 		KeepAlive: keepAlive,
 	}
 	_, err := c.Generate(ctx, &gReq)
@@ -284,8 +284,8 @@ func (c *Client) LoadModel(ctx context.Context, model string, keepAlive string) 
 func (c *Client) UnloadModel(ctx context.Context, model string) error {
 	// Use generate endpoint with empty prompt and keep_alive=0 to unload the model
 	gReq := GenerateRequest{
-		Model:    model,
-		Prompt:   "",
+		Model:     model,
+		Prompt:    "",
 		KeepAlive: "0",
 	}
 	_, err := c.Generate(ctx, &gReq)
