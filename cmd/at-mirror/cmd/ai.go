@@ -5,7 +5,6 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(aiCmd)
 	aiCmd.PersistentFlags().String("model", "llama3", "The model to use")
 	aiCmd.PersistentFlags().String("prompt", "", "The system prompt to use")
 }

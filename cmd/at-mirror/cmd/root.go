@@ -27,12 +27,12 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(aiCmd)
 	rootCmd.AddCommand(backfillCmd)
 	rootCmd.AddCommand(dbCmd)
 	rootCmd.AddCommand(plcCmd)
 	rootCmd.AddCommand(repoCmd)
+	rootCmd.AddCommand(runCmd)
 }
 
 var (
