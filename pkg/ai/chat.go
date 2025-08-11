@@ -6,13 +6,17 @@ import (
 	"github.com/blebbit/at-mirror/pkg/ai/ollama"
 )
 
-func (a *AI) Chat(ctx context.Context, model, prompt string) (string, error) {
+func (a *AI) Chat(ctx context.Context, model, systemPrompt, userPrompt string) (string, error) {
+	finalPrompt := userPrompt
+	if systemPrompt != "" {
+		finalPrompt = systemPrompt + "\n\n" + userPrompt
+	}
 	req := &ollama.ChatRequest{
 		Model: model,
 		Messages: []ollama.Message{
 			{
 				Role:    "user",
-				Content: prompt,
+				Content: finalPrompt,
 			},
 		},
 	}

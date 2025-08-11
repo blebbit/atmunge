@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/blebbit/at-mirror/pkg/ai"
+	"github.com/blebbit/at-mirror/pkg/util"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
@@ -20,14 +21,12 @@ var aiChatCmd = &cobra.Command{
 			cmd.Usage()
 			return
 		}
-		userPrompt := args[0]
+		userPrompt, err := util.GetInput(args[0])
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to get input")
+		}
 		model, _ := cmd.Flags().GetString("model")
 		systemPrompt, _ := cmd.Flags().GetString("prompt")
-
-		finalPrompt := userPrompt
-		if systemPrompt != "" {
-			finalPrompt = systemPrompt + "\n\n" + userPrompt
-		}
 
 		a, err := ai.NewAI()
 		if err != nil {
@@ -35,7 +34,7 @@ var aiChatCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		resp, err := a.Chat(ctx, model, finalPrompt)
+		resp, err := a.Chat(ctx, model, systemPrompt, userPrompt)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to chat")
 		}

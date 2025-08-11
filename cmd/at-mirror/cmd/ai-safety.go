@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/blebbit/at-mirror/pkg/util"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
@@ -21,7 +22,10 @@ var aiSafetyCmd = &cobra.Command{
 			cmd.Usage()
 			return
 		}
-		uri := args[0]
+		uri, err := util.GetInput(args[0])
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to get input")
+		}
 		model, _ := cmd.Flags().GetString("model")
 		prompt, _ := cmd.Flags().GetString("prompt")
 		log.Info().Msgf("getting safety status for post: %s", uri)
