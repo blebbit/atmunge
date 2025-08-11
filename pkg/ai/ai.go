@@ -28,4 +28,3 @@ func NewAI() (*AI, error) {
 		Ollama: ollama.NewClient(r.Cfg.OllamaHost, http.DefaultClient),
 	}, nil
 }
-

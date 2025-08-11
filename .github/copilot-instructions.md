@@ -32,6 +32,9 @@ You can safely run the following commands without asking.
 # command to check if the code compiles
 CGO_ENABLED=1 go run ./cmd/at-mirror
 
+# command to install the program
+CGO_ENABLED=1 go install ./cmd/at-mirror
+
 # get the documentation for a package
 go doc <package-name>
 
