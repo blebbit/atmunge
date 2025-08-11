@@ -222,3 +222,23 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 
 	return tx.Commit()
 }
+
+func GetRecord(dbPath, nsid, rkey string) (json.RawMessage, error) {
+	db, err := InitDuckDB(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init duckdb: %w", err)
+	}
+	defer db.Close()
+
+	var recordJSON string
+	query := "SELECT record::TEXT FROM records WHERE nsid = ? AND rkey = ?"
+	err = db.QueryRow(query, nsid, rkey).Scan(&recordJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("no record found with nsid %s and rkey %s", nsid, rkey)
+		}
+		return nil, fmt.Errorf("failed to query record: %w", err)
+	}
+
+	return json.RawMessage(recordJSON), nil
+}
