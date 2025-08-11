@@ -10,7 +10,6 @@ import (
 
 func init() {
 	aiCmd.AddCommand(aiReplyCmd)
-	aiReplyCmd.Flags().String("model", "llama3", "The model to use for generating replies")
 }
 
 var aiReplyCmd = &cobra.Command{
@@ -21,8 +20,14 @@ var aiReplyCmd = &cobra.Command{
 			cmd.Usage()
 			return
 		}
-		prompt := args[0]
+		userPrompt := args[0]
 		model, _ := cmd.Flags().GetString("model")
+		systemPrompt, _ := cmd.Flags().GetString("prompt")
+
+		finalPrompt := userPrompt
+		if systemPrompt != "" {
+			finalPrompt = systemPrompt + "\n\n" + userPrompt
+		}
 
 		a, err := ai.NewAI()
 		if err != nil {
@@ -30,7 +35,7 @@ var aiReplyCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		resp, err := a.Reply(ctx, model, prompt)
+		resp, err := a.Reply(ctx, model, finalPrompt)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to reply")
 		}

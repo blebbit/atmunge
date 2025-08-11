@@ -10,7 +10,6 @@ import (
 
 func init() {
 	aiCmd.AddCommand(aiCompleteCmd)
-	aiCompleteCmd.Flags().String("model", "llama3", "The model to use for generating completions")
 }
 
 var aiCompleteCmd = &cobra.Command{
@@ -21,8 +20,14 @@ var aiCompleteCmd = &cobra.Command{
 			cmd.Usage()
 			return
 		}
-		prompt := args[0]
+		userPrompt := args[0]
 		model, _ := cmd.Flags().GetString("model")
+		systemPrompt, _ := cmd.Flags().GetString("prompt")
+
+		finalPrompt := userPrompt
+		if systemPrompt != "" {
+			finalPrompt = systemPrompt + "\n\n" + userPrompt
+		}
 
 		a, err := ai.NewAI()
 		if err != nil {
@@ -30,7 +35,7 @@ var aiCompleteCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		resp, err := a.Complete(ctx, model, prompt)
+		resp, err := a.Complete(ctx, model, finalPrompt)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to complete")
 		}

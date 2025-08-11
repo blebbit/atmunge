@@ -11,7 +11,8 @@ import (
 	"github.com/bluesky-social/indigo/atproto/syntax"
 )
 
-func (a *AI) Topics(ctx context.Context, uri string) error {
+// Topics gets topics for a post
+func (a *AI) Topics(ctx context.Context, model, prompt, uri string) error {
 	atURI, err := syntax.ParseATURI(uri)
 	if err != nil {
 		return fmt.Errorf("failed to parse at uri: %w", err)
@@ -28,11 +29,14 @@ func (a *AI) Topics(ctx context.Context, uri string) error {
 		return fmt.Errorf("failed to unmarshal record json: %w", err)
 	}
 
-	prompt := fmt.Sprintf("Extract the topics from the following JSON record. Respond with a simple JSON object with a single key, \"topics\", and a value that is a list of strings. For example: {\"topics\": [\"topic1\", \"topic2\"]}. JSON record:\n\n%s", recordJSON)
+	finalPrompt := fmt.Sprintf("What are the topics of the following JSON record? Respond with a simple JSON object with a single key, \"topics\", and a list of strings. For example: {\"topics\": [\"one\", \"two\"]}. JSON record:\n\n%s", recordJSON)
+	if prompt != "" {
+		finalPrompt = prompt + "\n\n" + finalPrompt
+	}
 
 	resp, err := a.Ollama.Generate(ctx, &ollama.GenerateRequest{
-		Model:  "gemma3:4b",
-		Prompt: prompt,
+		Model:  model,
+		Prompt: finalPrompt,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to get completion from ollama: %w", err)

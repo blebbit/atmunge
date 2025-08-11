@@ -10,7 +10,6 @@ import (
 
 func init() {
 	aiCmd.AddCommand(aiChatCmd)
-	aiChatCmd.Flags().String("model", "llama3", "The model to use for chatting")
 }
 
 var aiChatCmd = &cobra.Command{
@@ -21,8 +20,14 @@ var aiChatCmd = &cobra.Command{
 			cmd.Usage()
 			return
 		}
-		prompt := args[0]
+		userPrompt := args[0]
 		model, _ := cmd.Flags().GetString("model")
+		systemPrompt, _ := cmd.Flags().GetString("prompt")
+
+		finalPrompt := userPrompt
+		if systemPrompt != "" {
+			finalPrompt = systemPrompt + "\n\n" + userPrompt
+		}
 
 		a, err := ai.NewAI()
 		if err != nil {
@@ -30,7 +35,7 @@ var aiChatCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		resp, err := a.Chat(ctx, model, prompt)
+		resp, err := a.Chat(ctx, model, finalPrompt)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to chat")
 		}

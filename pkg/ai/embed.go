@@ -11,7 +11,8 @@ import (
 	"github.com/bluesky-social/indigo/atproto/syntax"
 )
 
-func (a *AI) Embed(ctx context.Context, uri string) error {
+// Embed embeds a post
+func (a *AI) Embed(ctx context.Context, model, prompt, uri string) error {
 	atURI, err := syntax.ParseATURI(uri)
 	if err != nil {
 		return fmt.Errorf("failed to parse at uri: %w", err)
@@ -40,8 +41,12 @@ func (a *AI) Embed(ctx context.Context, uri string) error {
 		text = string(recordJSON)
 	}
 
+	if prompt != "" {
+		text = prompt + "\n\n" + text
+	}
+
 	resp, err := a.Ollama.GenerateEmbeddings(ctx, &ollama.EmbeddingsRequest{
-		Model: "mxbai-embed-large",
+		Model: model,
 		Input: []string{text},
 	})
 	if err != nil {

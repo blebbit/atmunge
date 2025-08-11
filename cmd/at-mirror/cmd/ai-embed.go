@@ -22,6 +22,8 @@ var aiEmbedCmd = &cobra.Command{
 			return
 		}
 		uri := args[0]
+		model, _ := cmd.Flags().GetString("model")
+		prompt, _ := cmd.Flags().GetString("prompt")
 		log.Info().Msgf("embedding post: %s", uri)
 
 		a, err := ai.NewAI()
@@ -30,7 +32,7 @@ var aiEmbedCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		if err := a.Embed(ctx, uri); err != nil {
+		if err := a.Embed(ctx, model, prompt, uri); err != nil {
 			log.Fatal().Err(err).Msg("failed to embed")
 		}
 
