@@ -92,27 +92,28 @@ func GetRepo(pdsHost, did, since string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func OpenCarBlockReader(filePath string) (*car.BlockReader, error) {
+func OpenCarBlockReader(filePath string) (*car.BlockReader, *os.File, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open car file: %w", err)
+		return nil, nil, fmt.Errorf("failed to open car file: %w", err)
 	}
-	defer f.Close()
 
 	br, err := car.NewBlockReader(f)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create block reader: %w", err)
+		f.Close()
+		return nil, nil, fmt.Errorf("failed to create block reader: %w", err)
 	}
 
-	return br, nil
+	return br, f, nil
 }
 
 // GetCarInfo reads a CAR file and returns information about its roots and commits.
 func GetCarInfo(filePath string) (*CarInfo, error) {
-	br, err := OpenCarBlockReader(filePath)
+	br, f, err := OpenCarBlockReader(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open CAR as block reader: %w", err)
 	}
+	defer f.Close()
 
 	info := &CarInfo{
 		Roots: br.Roots,
@@ -177,11 +178,12 @@ func tryExtractRev(raw []byte) (string, bool) {
 func LoadLocalCar(filePath string) (map[cid.Cid][]byte, string, error) {
 	blockstoreMem := make(map[cid.Cid][]byte)
 
-	br, err := OpenCarBlockReader(filePath)
+	br, f, err := OpenCarBlockReader(filePath)
 	if err != nil {
 		// we do want to return an initialized blockstore, even when erroring
 		return blockstoreMem, "", fmt.Errorf("failed to open CAR as block reader: %w", err)
 	}
+	defer f.Close()
 
 	var latestRev string
 	for {
