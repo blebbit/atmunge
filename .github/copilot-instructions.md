@@ -29,29 +29,6 @@ You should fetch and consult these web resources as needed.
 You can safely run the following commands without asking.
 
 ```sh
-# command to check if the code compiles
-CGO_ENABLED=1 go run ./cmd/at-mirror
-
-# command to install the program
-CGO_ENABLED=1 go install ./cmd/at-mirror
-
-# get the documentation for a package
-go doc <package-name>
-
-# get the documentation for a specific function
-go doc <package-name>.<function-name>
-
-# get the documentation for a specific type
-go doc <package-name>.<type-name>
-```
-
-## Overview of the Codebase
-
-`at-mirror` is a Golang CLI tool for backfilling and syncing the ATProtocol network.
-
-If you add or remove a file, you should update this section accordingly.
-
-```sh
 .
 ├── Dockerfile
 ├── LICENSE
@@ -67,6 +44,7 @@ If you add or remove a file, you should update this section accordingly.
 │       │   ├── ai-hack.go
 │       │   ├── ai-reply.go
 │       │   ├── ai-safety.go
+│       │   ├── ai-summarize.go
 │       │   ├── ai-topics.go
 │       │   ├── ai.go
 │       │   ├── backfill-describe-repo.go
@@ -112,11 +90,13 @@ If you add or remove a file, you should update this section accordingly.
 │   │   ├── embed.go
 │   │   ├── explain.go
 │   │   ├── hack.go
+│   │   ├── input.go
 │   │   ├── ollama
 │   │   │   ├── client.go
 │   │   │   └── structs.go
 │   │   ├── reply.go
 │   │   ├── safety.go
+│   │   ├── summarize.go
 │   │   └── topics.go
 │   ├── config
 │   │   ├── config.go
