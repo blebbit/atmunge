@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 )
 
 const (
@@ -271,10 +270,6 @@ type KeepAliveRequest struct {
 
 // LoadModel loads a model into memory.
 func (c *Client) LoadModel(ctx context.Context, model string, keepAlive string) error {
-	req := KeepAliveRequest{
-		Model:    model,
-		KeepAlive: keepAlive,
-	}
 	// Use generate endpoint with empty prompt to load the model
 	gReq := GenerateRequest{
 		Model:    model,
@@ -287,10 +282,6 @@ func (c *Client) LoadModel(ctx context.Context, model string, keepAlive string) 
 
 // UnloadModel unloads a model from memory.
 func (c *Client) UnloadModel(ctx context.Context, model string) error {
-	req := KeepAliveRequest{
-		Model:    model,
-		KeepAlive: "0",
-	}
 	// Use generate endpoint with empty prompt and keep_alive=0 to unload the model
 	gReq := GenerateRequest{
 		Model:    model,

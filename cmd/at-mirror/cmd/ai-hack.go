@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/bleb-inc/at-mirror/pkg/ai"
+	"github.com/blebbit/at-mirror/pkg/ai"
 )
 
 func init() {
@@ -22,16 +22,16 @@ var aiHackCmd = &cobra.Command{
 			return
 		}
 		uri := args[0]
-		log.Infof("hacking post: %s", uri)
+		log.Info().Msgf("hacking post: %s", uri)
 
 		a, err := ai.NewAI()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("failed to create AI client")
 		}
 
 		ctx := cmd.Context()
 		if err := a.Hack(ctx, uri); err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("failed to hack")
 		}
 
 		fmt.Println("ok")

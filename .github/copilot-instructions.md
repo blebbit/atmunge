@@ -30,7 +30,7 @@ You can safely run the following commands without asking.
 
 ```sh
 # command to check if the code compiles
-go run ./cmd/at-mirror
+CGO_ENABLED=1 go run ./cmd/at-mirror
 
 # get the documentation for a package
 go doc <package-name>

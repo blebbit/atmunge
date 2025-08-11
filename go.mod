@@ -33,19 +33,25 @@ require (
 )
 
 require (
-	github.com/apache/arrow-go/v18 v18.1.0 // indirect
+	github.com/apache/arrow-go/v18 v18.4.0 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
+	github.com/duckdb/duckdb-go-bindings v0.1.17 // indirect
+	github.com/duckdb/duckdb-go-bindings/darwin-amd64 v0.1.12 // indirect
+	github.com/duckdb/duckdb-go-bindings/darwin-arm64 v0.1.12 // indirect
+	github.com/duckdb/duckdb-go-bindings/linux-amd64 v0.1.12 // indirect
+	github.com/duckdb/duckdb-go-bindings/linux-arm64 v0.1.12 // indirect
+	github.com/duckdb/duckdb-go-bindings/windows-amd64 v0.1.12 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/google/flatbuffers v25.1.24+incompatible // indirect
+	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
@@ -84,6 +90,9 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.0.21 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/marcboeker/go-duckdb v1.8.5 // indirect
+	github.com/marcboeker/go-duckdb/arrowmapping v0.0.10 // indirect
+	github.com/marcboeker/go-duckdb/mapping v0.0.11 // indirect
+	github.com/marcboeker/go-duckdb/v2 v2.3.5 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect

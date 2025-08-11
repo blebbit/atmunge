@@ -13,7 +13,7 @@ import (
 	indigoRepo "github.com/bluesky-social/indigo/atproto/repo"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/ipfs/go-cid"
-	_ "github.com/marcboeker/go-duckdb"
+	_ "github.com/marcboeker/go-duckdb/v2"
 )
 
 func InitDuckDB(dbPath string) (*sql.DB, error) {

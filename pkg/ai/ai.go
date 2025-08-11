@@ -7,11 +7,12 @@ import (
 	"github.com/blebbit/at-mirror/pkg/ai/ollama"
 	"github.com/blebbit/at-mirror/pkg/config"
 	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 type AI struct {
-	log    log.Logger
+	log    zerolog.Logger
 	r      *runtime.Runtime
 	Ollama *ollama.Client
 }
