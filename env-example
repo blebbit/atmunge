@@ -9,3 +9,6 @@ ATMIRROR_PLC_CONFLICT_KEEP=true
 
 # Repo Sync Options
 ATMIRROR_REPO_DATA_DIR=./data/repos
+
+# Ollama Settings
+ATMIRROR_OLLAMA_HOST=http://localhost:11434
