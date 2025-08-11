@@ -28,3 +28,7 @@ func NewAI() (*AI, error) {
 		Ollama: ollama.NewClient(r.Cfg.OllamaHost, http.DefaultClient),
 	}, nil
 }
+
+func (a *AI) GetRepoDataDir() string {
+	return a.r.Cfg.RepoDataDir
+}

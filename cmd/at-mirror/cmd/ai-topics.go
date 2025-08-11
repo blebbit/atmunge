@@ -3,11 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/blebbit/at-mirror/pkg/util"
+	"github.com/blebbit/at-mirror/pkg/ai"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-
-	"github.com/blebbit/at-mirror/pkg/ai"
 )
 
 func init() {
@@ -22,18 +20,18 @@ var aiTopicsCmd = &cobra.Command{
 			cmd.Usage()
 			return
 		}
-		uri, err := util.GetInput(args[0])
+		a, err := ai.NewAI()
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to create AI client")
+		}
+
+		uri, err := a.ResolveInput(args[0])
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to get input")
 		}
 		model, _ := cmd.Flags().GetString("model")
 		prompt, _ := cmd.Flags().GetString("prompt")
 		log.Info().Msgf("getting topics for post: %s", uri)
-
-		a, err := ai.NewAI()
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to create AI client")
-		}
 
 		ctx := cmd.Context()
 		if err := a.Topics(ctx, model, prompt, uri); err != nil {
