@@ -24,6 +24,9 @@ type Config struct {
 	RunRepoMirror bool   `split_words:"true" default:"false"`
 	RunServer     bool   `split_words:"true" default:"true"`
 	HTTPPort      string `split_words:"true" default:"1323"`
+
+	// AI config
+	OllamaHost string `split_words:"true" default:"http://localhost:11434"`
 }
 
 var cfg *Config

@@ -2,14 +2,18 @@ package ai
 
 import (
 	"context"
+	"net/http"
 
+	"github.com/blebbit/at-mirror/pkg/ai/ollama"
+	"github.com/blebbit/at-mirror/pkg/config"
 	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/rs/zerolog/log"
 )
 
 type AI struct {
-	log log.Logger
-	r   *runtime.Runtime
+	log    log.Logger
+	r      *runtime.Runtime
+	Ollama *ollama.Client
 }
 
 func NewAI() (*AI, error) {
@@ -18,8 +22,15 @@ func NewAI() (*AI, error) {
 		return nil, err
 	}
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	return &AI{
-		log: log.With().Str("module", "ai").Logger(),
-		r:   r,
+		log:    log.With().Str("module", "ai").Logger(),
+		r:      r,
+		Ollama: ollama.NewClient(cfg.OllamaHost, http.DefaultClient),
 	}, nil
 }
+
