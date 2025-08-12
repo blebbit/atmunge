@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	_ "github.com/marcboeker/go-duckdb/v2"
 	"github.com/rs/zerolog/log"
@@ -61,6 +62,9 @@ func (i *Indexer) Index(ctx context.Context, dbPath string, indexNames []string,
 }
 
 func (i *Indexer) runSQLFile(ctx context.Context, db *sql.DB, queryType, fileName string) ([]map[string]interface{}, error) {
+	if !strings.HasSuffix(fileName, ".sql") {
+		fileName += ".sql"
+	}
 	sqlBytes, err := sqlFiles.ReadFile(filepath.Join("sql", queryType, fileName))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read sql file %s: %w", fileName, err)
