@@ -12,10 +12,12 @@ Guidance on changes:
 
 - Look to the surrounding files for context on architecture, design patterns, and implementation details.
 - Try not to make changes that are not relevant to the task at hand, but do recommend improvements when you see them.
-- Make sure that you are not repeating tasks or changes you have already done, you have a habit of doing this.
-- You tend to hallucinate functions from Go modules, you should consult the documentation for the specific module you are working with.
-- If an import has a problem, look at other files first before asking to download it
+- Ensure you are not repeating tasks
+- Ensure you are not repeating changes
+- Reference other files for module imports before considering `go get` them
+- Consult `go doc...` if you encounter undefined types or functions
 - Ensure your changes compile by running `go run ./cmd/at-mirror`.
+- After compiling works, run command(s) to test changes.
 
 ## Instructions for subdividing the problem
 
@@ -67,6 +69,8 @@ go doc <package-name>.<type-name>
 
 If you add or remove a file, you should update this section accordingly.
 
+<!-- tree -I data -I *.sql -->
+
 ```sh
 .
 ├── Dockerfile
@@ -76,41 +80,52 @@ If you add or remove a file, you should update this section accordingly.
 ├── cmd
 │   └── at-mirror
 │       ├── cmd
-│       │   ├── acct-analyze.go
-│       │   ├── acct-expand.go
-│       │   ├── acct-feed.go
-│       │   ├── acct-stats.go
-│       │   ├── acct-sync.go
-│       │   ├── acct.go
-│       │   ├── ai-chat.go
-│       │   ├── ai-complete.go
-│       │   ├── ai-embed.go
-│       │   ├── ai-explain.go
-│       │   ├── ai-hack.go
-│       │   ├── ai-reply.go
-│       │   ├── ai-safety.go
-│       │   ├── ai-summarize.go
-│       │   ├── ai-topics.go
-│       │   ├── ai.go
-│       │   ├── backfill-describe-repo.go
-│       │   ├── backfill-pds-accounts.go
-│       │   ├── backfill-plc-logs.go
-│       │   ├── backfill-repo-sync.go
+│       │   ├── acct
+│       │   │   ├── acct-analyze.go
+│       │   │   ├── acct-expand.go
+│       │   │   ├── acct-feed.go
+│       │   │   ├── acct-index.go
+│       │   │   ├── acct-query.go
+│       │   │   ├── acct-stats.go
+│       │   │   ├── acct-sync.go
+│       │   │   └── acct.go
+│       │   ├── ai
+│       │   │   ├── ai-chat.go
+│       │   │   ├── ai-complete.go
+│       │   │   ├── ai-embed.go
+│       │   │   ├── ai-explain.go
+│       │   │   ├── ai-hack.go
+│       │   │   ├── ai-reply.go
+│       │   │   ├── ai-safety.go
+│       │   │   ├── ai-summarize.go
+│       │   │   ├── ai-topics.go
+│       │   │   └── ai.go
+│       │   ├── backfill
+│       │   │   ├── backfill-describe-repo.go
+│       │   │   ├── backfill-pds-accounts.go
+│       │   │   ├── backfill-plc-logs.go
+│       │   │   ├── backfill-repo-sync.go
+│       │   │   └── backfill.go
 │       │   ├── config.go
-│       │   ├── db-clear.go
-│       │   ├── db-migrate.go
-│       │   ├── db-reset.go
-│       │   ├── plc-annotate.go
-│       │   ├── repo-duckdb.go
-│       │   ├── repo-hack.go
-│       │   ├── repo-inspect.go
-│       │   ├── repo-ls.go
-│       │   ├── repo-mst.go
-│       │   ├── repo-sqlite.go
-│       │   ├── repo-sync.go
-│       │   ├── repo-unpack.go
-│       │   ├── repo-utils.go
-│       │   ├── repo.go
+│       │   ├── db
+│       │   │   ├── db-clear.go
+│       │   │   ├── db-migrate.go
+│       │   │   ├── db-reset.go
+│       │   │   └── db.go
+│       │   ├── plc
+│       │   │   ├── plc-annotate.go
+│       │   │   └── plc.go
+│       │   ├── repo
+│       │   │   ├── repo-duckdb.go
+│       │   │   ├── repo-hack.go
+│       │   │   ├── repo-inspect.go
+│       │   │   ├── repo-ls.go
+│       │   │   ├── repo-mst.go
+│       │   │   ├── repo-sqlite.go
+│       │   │   ├── repo-sync.go
+│       │   │   ├── repo-unpack.go
+│       │   │   ├── repo-utils.go
+│       │   │   └── repo.go
 │       │   ├── root.go
 │       │   └── run.go
 │       └── main.go
@@ -133,6 +148,9 @@ If you add or remove a file, you should update this section accordingly.
 │   │   ├── analyze.go
 │   │   ├── expand.go
 │   │   ├── feed.go
+│   │   ├── index.go
+│   │   ├── query.go
+│   │   ├── sql.go
 │   │   ├── stats.go
 │   │   └── sync.go
 │   ├── ai
@@ -177,6 +195,7 @@ If you add or remove a file, you should update this section accordingly.
 │   │   ├── backfill-pds-accounts.go
 │   │   ├── backfill-repo-sync.go
 │   │   ├── const.go
+│   │   ├── identity.go
 │   │   ├── metrics.go
 │   │   ├── plc.go
 │   │   ├── queries.go
@@ -186,6 +205,11 @@ If you add or remove a file, you should update this section accordingly.
 │   ├── server
 │   │   ├── metrics.go
 │   │   └── server.go
+│   ├── sql
+│   │   ├── acct
+│   │   │   ├── index
+│   │   │   └── query
+│   │   └── embed.go
 │   └── util
 │       ├── fix
 │       │   ├── postgres_json.go
@@ -195,5 +219,5 @@ If you add or remove a file, you should update this section accordingly.
 ├── pyproject.toml
 └── uv.lock
 
-22 directories, 104 files
+32 directories, 114 files
 ```
