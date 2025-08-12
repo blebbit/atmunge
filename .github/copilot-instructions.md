@@ -16,6 +16,20 @@ Guidance on changes:
 - You tend to hallucinate functions from Go modules, you should consult the documentation for the specific module you are working with.
 - Ensure your changes compile by running `go run ./cmd/at-mirror`.
 
+## Instructions for subdividing the problem
+
+You should understand the user's request,
+break it down into subtasks,
+create a plan for processing the subtasks,
+and then act on those plans.
+Sometimes the task to break down is itself a subtask.
+
+Spend some time thinking about this.
+
+After you have finished, double check that you have
+implemented all of the user's requests and your subtasks.
+
+
 ## Helpful links and context for ATProtocol
 
 You should fetch and consult these web resources as needed.
