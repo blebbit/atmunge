@@ -74,6 +74,12 @@ If you add or remove a file, you should update this section accordingly.
 ├── cmd
 │   └── at-mirror
 │       ├── cmd
+│       │   ├── acct-analyze.go
+│       │   ├── acct-expand.go
+│       │   ├── acct-feed.go
+│       │   ├── acct-stats.go
+│       │   ├── acct-sync.go
+│       │   ├── acct.go
 │       │   ├── ai-chat.go
 │       │   ├── ai-complete.go
 │       │   ├── ai-embed.go
@@ -120,6 +126,13 @@ If you add or remove a file, you should update this section accordingly.
 ├── go.sum
 ├── notes.md
 ├── pkg
+│   ├── acct
+│   │   ├── acct.go
+│   │   ├── analyze.go
+│   │   ├── expand.go
+│   │   ├── feed.go
+│   │   ├── stats.go
+│   │   └── sync.go
 │   ├── ai
 │   │   ├── ai.go
 │   │   ├── chat.go
@@ -128,6 +141,9 @@ If you add or remove a file, you should update this section accordingly.
 │   │   ├── explain.go
 │   │   ├── hack.go
 │   │   ├── input.go
+│   │   ├── llamacpp
+│   │   │   ├── client.go
+│   │   │   └── structs.go
 │   │   ├── ollama
 │   │   │   ├── client.go
 │   │   │   └── structs.go
@@ -150,6 +166,7 @@ If you add or remove a file, you should update this section accordingly.
 │   │   │   └── main.go
 │   │   └── structs.go
 │   ├── repo
+│   │   ├── blob.go
 │   │   ├── car.go
 │   │   ├── duckdb.go
 │   │   └── sqlite.go
@@ -176,5 +193,5 @@ If you add or remove a file, you should update this section accordingly.
 ├── pyproject.toml
 └── uv.lock
 
-22 directories, 95 files
+22 directories, 104 files
 ```
