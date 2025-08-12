@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/blebbit/at-mirror/pkg/acct"
@@ -11,10 +13,12 @@ import (
 )
 
 var indexName string
+var outputDest string
 
 func init() {
 	acctCmd.AddCommand(acctIndexCmd)
 	acctIndexCmd.Flags().StringVar(&indexName, "index", "", "name of the index to run")
+	acctIndexCmd.Flags().StringVarP(&outputDest, "output", "o", "", "output file for results as JSON, or - for stdout")
 }
 
 var acctIndexCmd = &cobra.Command{
@@ -37,10 +41,27 @@ var acctIndexCmd = &cobra.Command{
 		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did+".duckdb")
 
 		indexer := acct.NewIndexer()
-		if err := indexer.Index(ctx, dbPath, indexName); err != nil {
+		results, err := indexer.Index(ctx, dbPath, indexName)
+		if err != nil {
 			log.Fatal().Err(err).Msg("failed to index account")
 		}
 
-		fmt.Println("Indexing complete")
+		if outputDest != "" && results != nil {
+			jsonOutput, err := json.MarshalIndent(results, "", "  ")
+			if err != nil {
+				log.Fatal().Err(err).Msg("failed to marshal results to JSON")
+			}
+
+			if outputDest == "-" {
+				fmt.Println(string(jsonOutput))
+			} else {
+				if err := os.WriteFile(outputDest, jsonOutput, 0644); err != nil {
+					log.Fatal().Err(err).Msgf("failed to write output to %s", outputDest)
+				}
+				log.Info().Str("path", outputDest).Msg("wrote results to file")
+			}
+		} else if outputDest == "" {
+			fmt.Println("Indexing complete")
+		}
 	},
 }
