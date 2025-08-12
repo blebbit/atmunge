@@ -26,8 +26,9 @@ Sometimes the task to break down is itself a subtask.
 
 Spend some time thinking about this.
 
-After you have finished, double check that you have
-implemented all of the user's requests and your subtasks.
+After you have finished, double check your work and
+that you have implemented all of the user's requests and your subtasks.
+Also ensure you did not deleted any important code or functionality.
 
 
 ## Helpful links and context for ATProtocol
