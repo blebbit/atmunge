@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-//go:embed sql/*.sql
+//go:embed sql/index/*.sql sql/adhoc/*.sql
 var sqlFiles embed.FS
 
 type Indexer struct {
@@ -23,7 +23,7 @@ func NewIndexer() *Indexer {
 	return &Indexer{}
 }
 
-func (i *Indexer) Index(ctx context.Context, dbPath string, indexName string) ([]map[string]interface{}, error) {
+func (i *Indexer) Index(ctx context.Context, dbPath string, indexNames []string, adhocNames []string) ([]map[string]interface{}, error) {
 	log.Info().Str("db", dbPath).Msg("indexing account")
 	db, err := sql.Open("duckdb", dbPath)
 	if err != nil {
@@ -31,20 +31,42 @@ func (i *Indexer) Index(ctx context.Context, dbPath string, indexName string) ([
 	}
 	defer db.Close()
 
-	if indexName != "" {
-		return i.runSQLFile(ctx, db, indexName)
+	var allResults []map[string]interface{}
+
+	if len(indexNames) == 0 && len(adhocNames) == 0 {
+		// Default behavior: run all index queries
+		results, err := i.runAllSQLFiles(ctx, db, "index")
+		if err != nil {
+			return nil, err
+		}
+		allResults = append(allResults, results...)
+	} else {
+		for _, indexName := range indexNames {
+			results, err := i.runSQLFile(ctx, db, "index", indexName)
+			if err != nil {
+				return nil, err
+			}
+			allResults = append(allResults, results...)
+		}
+		for _, adhocName := range adhocNames {
+			results, err := i.runSQLFile(ctx, db, "adhoc", adhocName)
+			if err != nil {
+				return nil, err
+			}
+			allResults = append(allResults, results...)
+		}
 	}
 
-	return i.runAllSQLFiles(ctx, db)
+	return allResults, nil
 }
 
-func (i *Indexer) runSQLFile(ctx context.Context, db *sql.DB, fileName string) ([]map[string]interface{}, error) {
-	sqlBytes, err := sqlFiles.ReadFile(filepath.Join("sql", fileName))
+func (i *Indexer) runSQLFile(ctx context.Context, db *sql.DB, queryType, fileName string) ([]map[string]interface{}, error) {
+	sqlBytes, err := sqlFiles.ReadFile(filepath.Join("sql", queryType, fileName))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read sql file %s: %w", fileName, err)
 	}
 
-	log.Info().Str("file", fileName).Msg("executing sql file")
+	log.Info().Str("file", fileName).Str("type", queryType).Msg("executing sql file")
 	rows, err := db.QueryContext(ctx, string(sqlBytes))
 	if err != nil {
 		// If it's a DDL statement, it might not return rows.
@@ -88,8 +110,8 @@ func (i *Indexer) runSQLFile(ctx context.Context, db *sql.DB, fileName string) (
 	return results, nil
 }
 
-func (i *Indexer) runAllSQLFiles(ctx context.Context, db *sql.DB) ([]map[string]interface{}, error) {
-	files, err := fs.Glob(sqlFiles, "sql/*.sql")
+func (i *Indexer) runAllSQLFiles(ctx context.Context, db *sql.DB, queryType string) ([]map[string]interface{}, error) {
+	files, err := fs.Glob(sqlFiles, filepath.Join("sql", queryType, "*.sql"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to glob sql files: %w", err)
 	}
@@ -98,7 +120,7 @@ func (i *Indexer) runAllSQLFiles(ctx context.Context, db *sql.DB) ([]map[string]
 	var allResults []map[string]interface{}
 	for _, file := range files {
 		baseName := filepath.Base(file)
-		results, err := i.runSQLFile(ctx, db, baseName)
+		results, err := i.runSQLFile(ctx, db, queryType, baseName)
 		if err != nil {
 			return nil, err
 		}
