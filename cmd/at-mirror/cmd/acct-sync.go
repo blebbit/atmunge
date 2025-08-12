@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/blebbit/at-mirror/pkg/acct"
-
+	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -14,11 +14,15 @@ var acctSyncCmd = &cobra.Command{
 	Short: "Sync an account",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return acct.Sync(args[0], phase)
+		rt, err := runtime.NewRuntime(cmd.Context())
+		if err != nil {
+			return err
+		}
+		return acct.Sync(rt, args[0], phase)
 	},
 }
 
 func init() {
 	acctCmd.AddCommand(acctSyncCmd)
-	acctSyncCmd.Flags().StringVar(&phase, "phase", "", "phase to continue from")
+	acctSyncCmd.Flags().StringVar(&phase, "phase", "", "phase to continue from (car, duckdb, blobs)")
 }
