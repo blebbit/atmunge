@@ -14,6 +14,7 @@ Guidance on changes:
 - Try not to make changes that are not relevant to the task at hand, but do recommend improvements when you see them.
 - Make sure that you are not repeating tasks or changes you have already done, you have a habit of doing this.
 - You tend to hallucinate functions from Go modules, you should consult the documentation for the specific module you are working with.
+- If an import has a problem, look at other files first before asking to download it
 - Ensure your changes compile by running `go run ./cmd/at-mirror`.
 
 ## Instructions for subdividing the problem
