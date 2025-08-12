@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/acct"
+	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/ai"
+	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/backfill"
+	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/db"
+	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/plc"
+	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/repo"
 	"github.com/spf13/cobra"
 )
 
@@ -27,33 +33,11 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(aiCmd)
-	rootCmd.AddCommand(backfillCmd)
-	rootCmd.AddCommand(dbCmd)
-	rootCmd.AddCommand(plcCmd)
-	rootCmd.AddCommand(repoCmd)
+	rootCmd.AddCommand(acct.AcctCmd)
+	rootCmd.AddCommand(ai.AICmd)
+	rootCmd.AddCommand(backfill.BackfillCmd)
+	rootCmd.AddCommand(db.DBCmd)
+	rootCmd.AddCommand(plc.PLCCmd)
+	rootCmd.AddCommand(repo.RepoCmd)
 	rootCmd.AddCommand(runCmd)
-}
-
-var (
-	backfillParallel int
-	backfillStart    string
-)
-
-var backfillCmd = &cobra.Command{
-	Use:   "backfill",
-	Short: "Commands for backfilling from data sources",
-	Long:  "Commands for backfilling from data sources",
-}
-
-var dbCmd = &cobra.Command{
-	Use:   "db",
-	Short: "Commands for working with the database",
-	Long:  "Commands for working with the database",
-}
-
-var plcCmd = &cobra.Command{
-	Use:   "plc",
-	Short: "Commands for working with the PLC features",
-	Long:  "Commands for working with the PLC features",
 }
