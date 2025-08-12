@@ -6,16 +6,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var phase string
+
 // acctSyncCmd represents the acctSync command
 var acctSyncCmd = &cobra.Command{
 	Use:   "sync [handle-or-did]",
 	Short: "Sync an account",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return acct.Sync(args[0])
+		return acct.Sync(args[0], phase)
 	},
 }
 
 func init() {
 	acctCmd.AddCommand(acctSyncCmd)
+	acctSyncCmd.Flags().StringVar(&phase, "phase", "", "phase to continue from")
 }
