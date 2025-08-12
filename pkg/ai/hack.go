@@ -18,7 +18,7 @@ func (a *AI) Hack(ctx context.Context, model, prompt, uri string) error {
 		return fmt.Errorf("failed to parse at uri: %w", err)
 	}
 
-	dbPath := filepath.Join(a.r.Cfg.RepoDataDir, atURI.Authority().String()+".duckdb")
+	dbPath := filepath.Join(a.r.Cfg.RepoDataDir, atURI.Authority().String(), "repo.duckdb")
 	recordJSON, err := repo.GetRecord(dbPath, atURI.Collection().String(), atURI.RecordKey().String())
 	if err != nil {
 		return fmt.Errorf("failed to get record from duckdb: %w", err)

@@ -30,7 +30,7 @@ func (a *AI) ResolveInput(input string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to parse at uri: %w", err)
 		}
-		dbPath := a.GetRepoDataDir() + "/" + atURI.Authority().String() + ".duckdb"
+		dbPath := a.GetRepoDataDir() + "/" + atURI.Authority().String() + "/repo.duckdb"
 		recordJSON, err := repo.GetRecord(dbPath, atURI.Collection().String(), atURI.RecordKey().String())
 		if err != nil {
 			return "", fmt.Errorf("failed to get record from duckdb: %w", err)

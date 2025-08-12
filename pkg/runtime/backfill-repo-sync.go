@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync/atomic"
 	"time"
 
@@ -113,11 +114,11 @@ func (r *Runtime) processRepoSync(did string) error {
 	r.limitTaker(pdsHost)
 
 	// prepare to write
-	dataDir := r.Cfg.RepoDataDir
-	if err := os.MkdirAll(dataDir, 0o755); err != nil {
-		return fmt.Errorf("failed to create data directory %s: %w", dataDir, err)
+	repoDir := filepath.Join(r.Cfg.RepoDataDir, did)
+	if err := os.MkdirAll(repoDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create data directory %s: %w", repoDir, err)
 	}
-	localCarFile := fmt.Sprintf("%s/%s.car", dataDir, did)
+	localCarFile := filepath.Join(repoDir, "repo.car")
 	// load local CAR from disk
 	blockstoreMem, sinceTID, err := repo.LoadLocalCar(localCarFile)
 	if err != nil {
@@ -164,7 +165,7 @@ func (r *Runtime) processRepoSync(did string) error {
 			}
 
 			// also write to sqlite
-			sqlitePath := fmt.Sprintf("%s/%s.db", dataDir, did)
+			sqlitePath := filepath.Join(repoDir, "repo.sqlite")
 			if err := repo.SaveNewRecordsToSQLite(r.Ctx, blockstoreMem, newBlocks, newRootCid, sqlitePath); err != nil {
 				log.Error().Err(err).Msgf("failed to save new records to SQLite for %s", did)
 				// deciding not to return error here, as the primary sync succeeded
