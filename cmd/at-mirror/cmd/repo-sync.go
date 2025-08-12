@@ -41,7 +41,7 @@ var repoSyncCmd = &cobra.Command{
 		blockstoreMem, sinceTID, err := repo.LoadLocalCar(localCarFile)
 		if err != nil {
 			if !errors.Is(err, os.ErrNotExist) {
-				log.Fatalf("failed to load local CAR for %s: %w", targetDID, err)
+				log.Fatalf("failed to load local CAR for %s: %v", targetDID, err)
 			}
 			// if the file doesn't exist, we can continue, it's a new repo
 		}
@@ -75,5 +75,8 @@ var repoSyncCmd = &cobra.Command{
 
 		fmt.Printf("Successfully synced %s. New root CID: %s, newest rev: %s\n", targetDID, newRootCid, newestRev)
 		fmt.Printf("Local CAR file written to: %s\n", localCarFile)
+
+		fmt.Println("Syncing blobs...")
+		repo.SyncBlobs(pdsHost, targetDID, dataDir)
 	},
 }
