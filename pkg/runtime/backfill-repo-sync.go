@@ -151,7 +151,7 @@ func (r *Runtime) processRepoSync(did string) error {
 	// if we have updates, merge them
 	if len(updateCarData) > 0 {
 
-		newRootCid, newestRev, newBlocks, err := repo.MergeUpdate(blockstoreMem, updateCarData)
+		newRootCid, newestRev, _ /*newBlocks*/, err := repo.MergeUpdate(blockstoreMem, updateCarData)
 		if err != nil {
 			return fmt.Errorf("failed to merge update for %s: %w", did, err)
 		}
@@ -164,12 +164,19 @@ func (r *Runtime) processRepoSync(did string) error {
 				return fmt.Errorf("failed to write CAR file for %s: %w", did, err)
 			}
 
-			// also write to sqlite
-			sqlitePath := filepath.Join(repoDir, "repo.sqlite")
-			if err := repo.SaveNewRecordsToSQLite(r.Ctx, blockstoreMem, newBlocks, newRootCid, sqlitePath); err != nil {
-				log.Error().Err(err).Msgf("failed to save new records to SQLite for %s", did)
-				// deciding not to return error here, as the primary sync succeeded
-			}
+			// TODO, these should be controlled by flags
+			//   right now, it significantly increase the disk footprint
+			// also write to sqlite & duckdb
+			// duckdbPath := filepath.Join(repoDir, "repo.duckdb")
+			// if err := repo.SaveNewRecordsToDuckDB(r.Ctx, blockstoreMem, newBlocks, newRootCid, duckdbPath); err != nil {
+			// 	log.Error().Err(err).Msgf("failed to save new records to DuckDB for %s", did)
+			// 	// deciding not to return error here, as the primary sync succeeded
+			// }
+			// sqlitePath := filepath.Join(repoDir, "repo.sqlite")
+			// if err := repo.SaveNewRecordsToSQLite(r.Ctx, blockstoreMem, newBlocks, newRootCid, sqlitePath); err != nil {
+			// 	log.Error().Err(err).Msgf("failed to save new records to SQLite for %s", did)
+			// 	// deciding not to return error here, as the primary sync succeeded
+			// }
 		}
 	} else {
 		// we want to note that we have checked this record, but there are no other changes
