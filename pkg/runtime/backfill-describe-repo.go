@@ -75,10 +75,12 @@ func (r *Runtime) processRepoDescribe(did string) error {
 	}
 
 	// per PDS rate limiters, blocks until some rate limit is available
-	r.limitTaker(row.PDS)
-
 	url := fmt.Sprintf("%s/xrpc/com.atproto.repo.describeRepo?repo=%s", row.PDS, row.DID)
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for %s: %w", url, err)
+	}
+	resp, err := r.Proxy.Do(req)
 	if err != nil {
 		log.Error().Err(err).Msgf("failed to get repos from %s", url)
 		return err

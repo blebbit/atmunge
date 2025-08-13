@@ -110,9 +110,6 @@ func (r *Runtime) processRepoSync(did string) error {
 		return fmt.Errorf("account %s has no PDS host", did)
 	}
 
-	// per PDS rate limiters, blocks until some rate limit is available
-	r.limitTaker(pdsHost)
-
 	// prepare to write
 	repoDir := filepath.Join(r.Cfg.RepoDataDir, did)
 	if err := os.MkdirAll(repoDir, 0o755); err != nil {
@@ -129,7 +126,7 @@ func (r *Runtime) processRepoSync(did string) error {
 	}
 
 	// get updated CAR data from PDS
-	updateCarData, err := repo.GetRepo(pdsHost, did, sinceTID)
+	updateCarData, err := repo.GetRepo(r.Ctx, r.Proxy, pdsHost, did, sinceTID)
 	if err != nil {
 		return fmt.Errorf("failed to fetch repo data for %s: %w", did, err)
 	}

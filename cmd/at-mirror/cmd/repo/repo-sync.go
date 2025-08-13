@@ -49,7 +49,7 @@ var repoSyncCmd = &cobra.Command{
 			fmt.Println("## No local repo found or no rev found. Performing initial sync...")
 		}
 
-		updateCarData, err := repo.GetRepo(pdsHost, targetDID, sinceTID)
+		updateCarData, err := repo.GetRepo(rt.Ctx, rt.Proxy, pdsHost, targetDID, sinceTID)
 		if err != nil {
 			log.Fatalf("failed to fetch repo data: %v", err)
 		}

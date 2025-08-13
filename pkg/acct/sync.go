@@ -35,7 +35,7 @@ func Sync(rt *runtime.Runtime, handleOrDID string, phase string) error {
 			return fmt.Errorf("failed to load local car: %w", err)
 		}
 
-		carData, err := repo.GetRepo(pds, did, since)
+		carData, err := repo.GetRepo(rt.Ctx, rt.Proxy, pds, did, since)
 		if err != nil {
 			return fmt.Errorf("failed to get repo: %w", err)
 		}

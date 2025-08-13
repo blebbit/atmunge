@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/blebbit/at-mirror/pkg/rlproxy"
 	cbor "github.com/fxamacker/cbor/v2"
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
@@ -69,7 +70,7 @@ func GetPlcInfo(account string) (*PlcInfo, error) {
 // GetRepo fetches a repo's CAR file from a PDS.
 // NOTE: We now pass the most recent commit TID (rev) as the `since` parameter
 // instead of the root CID.
-func GetRepo(pdsHost, did, since string) ([]byte, error) {
+func GetRepo(ctx context.Context, proxy *rlproxy.Proxy, pdsHost, did, since string) ([]byte, error) {
 	endpoint, _ := url.Parse(pdsHost)
 	endpoint.Path = "/xrpc/com.atproto.sync.getRepo"
 	queryParams := url.Values{}
@@ -79,8 +80,12 @@ func GetRepo(pdsHost, did, since string) ([]byte, error) {
 	}
 	endpoint.RawQuery = queryParams.Encode()
 
-	// fmt.Printf("Fetching from: %s\n", endpoint.String())
-	resp, err := http.Get(endpoint.String())
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := proxy.Do(req)
 	if err != nil {
 		return nil, err
 	}

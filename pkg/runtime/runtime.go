@@ -3,26 +3,26 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
-	"go.uber.org/ratelimit"
 	"golang.org/x/time/rate"
 	"gorm.io/gorm"
 
 	"github.com/blebbit/at-mirror/pkg/config"
 	"github.com/blebbit/at-mirror/pkg/db"
 	plcdb "github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/at-mirror/pkg/rlproxy"
 )
 
 type Runtime struct {
 	// shared resources
-	Ctx context.Context
-	Cfg *config.Config
-	DB  *gorm.DB
-
-	// string -> limiter (largely for per-PDS rate limiting)
-	limiters sync.Map
+	Ctx    context.Context
+	Cfg    *config.Config
+	DB     *gorm.DB
+	Proxy  *rlproxy.Proxy
+	Client *http.Client
 
 	// PLC mirror fields
 	MaxDelay                time.Duration
@@ -49,10 +49,14 @@ func NewRuntime(ctx context.Context) (*Runtime, error) {
 		return nil, err
 	}
 
+	client := &http.Client{}
+
 	r := &Runtime{
 		Ctx:      ctx,
 		Cfg:      cfg,
 		DB:       DB,
+		Proxy:    rlproxy.New(client),
+		Client:   client,
 		limiter:  rate.NewLimiter(plcRateLimit, 4),
 		MaxDelay: plcMaxDelay,
 	}
@@ -93,15 +97,4 @@ func (r *Runtime) LastRecordTimestamp(ctx context.Context) (time.Time, error) {
 		return r.lastRecordTimestamp, nil
 	}
 	return dbTimestamp, nil
-}
-
-func (r *Runtime) limitTaker(key string) {
-	// per PDS rate limiters
-	limiter, ok := r.limiters.Load(key)
-	if !ok {
-		// create a new rate limiter for this PDS
-		limiter = ratelimit.New(9) // 10 requests per second is at the limit the PDS defaults to (3000;300w)
-		limiter, _ = r.limiters.LoadOrStore(key, limiter)
-	}
-	limiter.(ratelimit.Limiter).Take() // wait for the rate limit
 }
