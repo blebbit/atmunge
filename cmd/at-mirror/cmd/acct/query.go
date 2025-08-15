@@ -19,13 +19,26 @@ func init() {
 	AcctCmd.AddCommand(acctQueryCmd)
 	acctQueryCmd.Flags().StringSliceVarP(&querySQLNames, "sql", "s", []string{}, "name of the adhoc query to run")
 	acctQueryCmd.Flags().StringVarP(&queryOutputDest, "output", "o", "-", "output file for results as JSON, or - for stdout")
+	acctQueryCmd.RegisterFlagCompletionFunc("sql", getValidArgs("acct/query"))
 }
 
 var acctQueryCmd = &cobra.Command{
-	Use:   "query <handle-or-did>",
+	Use:   "query <handle-or-did|list|view>",
 	Short: "Run adhoc queries on an account's data in DuckDB",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
+		switch args[0] {
+		case "list":
+			listValidSQLs("acct/query")
+			return
+		case "view":
+			if len(args) < 2 {
+				log.Fatal().Msg("view requires a second argument")
+			}
+			viewSQL("acct/query", args[1])
+			return
+		}
+
 		ctx := cmd.Context()
 		rt, err := runtime.NewRuntime(ctx)
 		if err != nil {
