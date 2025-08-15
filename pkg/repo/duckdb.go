@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/blebbit/at-mirror/pkg/db"
 	"github.com/bluesky-social/indigo/atproto/data"
 	indigoRepo "github.com/bluesky-social/indigo/atproto/repo"
 	"github.com/bluesky-social/indigo/atproto/syntax"
@@ -21,17 +22,25 @@ func InitDuckDB(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to create duckdb directory: %w", err)
 	}
 
-	db, err := sql.Open("duckdb", dbPath)
+	dbConn, err := sql.Open("duckdb", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open duckdb: %w", err)
 	}
 
-	if _, err := db.Exec(createTableSQL); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to create records table: %w", err)
+	// get the path to the migrations directory
+	// HACK: this is not a good way to do this
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	migrationsPath := filepath.Join(cwd, "pkg", "sql", "acct", "migrations")
+
+	if err := db.RunDuckDBMigrations(dbConn, migrationsPath); err != nil {
+		dbConn.Close()
+		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	return db, nil
+	return dbConn, nil
 }
 
 func CarToDuckDB(carPath string, dbPath string) error {
@@ -86,17 +95,15 @@ func SaveNewRecordsToDuckDB(ctx context.Context, bsMap map[cid.Cid][]byte, newBl
 	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(`
-		INSERT INTO records (created_at, indexed_at, nsid, rkey, cid, record)
-		VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT (nsid, rkey, cid) DO UPDATE SET
-		created_at = excluded.created_at,
-		indexed_at = excluded.indexed_at,
-		record = excluded.record;
+		INSERT INTO records (created_at, indexed_at, updated_at, did, nsid, rkey, cid, record)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 	`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
+
+	// get the DID from the MST here
 
 	err = r.MST.Walk(func(k []byte, v cid.Cid) error {
 		if _, isNew := newBlocks[v]; !isNew {
@@ -122,10 +129,15 @@ func SaveNewRecordsToDuckDB(ctx context.Context, bsMap map[cid.Cid][]byte, newBl
 			return err
 		}
 
-		var createdAt, indexedAt time.Time
+		var createdAt, updatedAt, indexedAt time.Time
 		if ca, ok := rec["createdAt"].(string); ok {
 			if t, err := time.Parse(time.RFC3339, ca); err == nil {
 				createdAt = t
+			}
+		}
+		if ca, ok := rec["updatedAt"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, ca); err == nil {
+				updatedAt = t
 			}
 		}
 		if ia, ok := rec["indexedAt"].(string); ok {
@@ -136,7 +148,7 @@ func SaveNewRecordsToDuckDB(ctx context.Context, bsMap map[cid.Cid][]byte, newBl
 			indexedAt = time.Now()
 		}
 
-		_, err = stmt.Exec(createdAt, indexedAt, col.String(), rkey.String(), v.String(), string(recJSON))
+		_, err = stmt.Exec(createdAt, indexedAt, updatedAt, col.String(), rkey.String(), v.String(), string(recJSON))
 		return err
 	})
 

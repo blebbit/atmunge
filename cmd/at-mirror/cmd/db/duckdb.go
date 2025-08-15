@@ -32,7 +32,7 @@ var duckDBCmd = &cobra.Command{
 			return
 		}
 
-		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did+".duckdb")
+		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did, "repo.duckdb")
 
 		// Check if the database file exists
 		if _, err := os.Stat(dbPath); os.IsNotExist(err) {

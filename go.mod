@@ -25,7 +25,6 @@ require (
 	github.com/wandb/parallel v0.2.2
 	github.com/whyrusleeping/cbor-gen v0.3.1
 	github.com/xlab/treeprint v1.2.0
-	go.uber.org/ratelimit v0.3.1
 	golang.org/x/time v0.12.0
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	gorm.io/driver/postgres v1.5.7
@@ -35,7 +34,6 @@ require (
 
 require (
 	github.com/apache/arrow-go/v18 v18.4.0 // indirect
-	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -92,7 +90,7 @@ require (
 	github.com/marcboeker/go-duckdb/mapping v0.0.11 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect
