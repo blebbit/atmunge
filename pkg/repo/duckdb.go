@@ -264,3 +264,30 @@ func GetRecord(dbPath, nsid, rkey string) (json.RawMessage, error) {
 
 	return json.RawMessage(recordJSON), nil
 }
+
+func ClearDuckDBTables(db *sql.DB, tables []string) error {
+	if len(tables) == 0 {
+		// If no tables are specified, get all tables from the database
+		rows, err := db.Query("SHOW TABLES")
+		if err != nil {
+			return fmt.Errorf("failed to query tables: %w", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var name string
+			if err := rows.Scan(&name); err != nil {
+				return fmt.Errorf("failed to scan table name: %w", err)
+			}
+			tables = append(tables, name)
+		}
+	}
+
+	for _, table := range tables {
+		if _, err := db.Exec("DELETE FROM " + table); err != nil {
+			return fmt.Errorf("clearing table %q: %w", table, err)
+		}
+	}
+
+	return nil
+}

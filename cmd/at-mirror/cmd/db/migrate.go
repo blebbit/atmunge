@@ -51,7 +51,7 @@ var dbMigrateCmd = &cobra.Command{
 		}
 
 		switch dbName {
-		case "atm":
+		case "app":
 			// db migrations (if needed)
 			err = db.MigrateModels(r.DB)
 			if err != nil {

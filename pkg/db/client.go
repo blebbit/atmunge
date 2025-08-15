@@ -70,12 +70,14 @@ func MigrateModels(db *gorm.DB) error {
 	return nil
 }
 
-func ClearTables(db *gorm.DB) error {
-	tables := []string{
-		"account_repos",
-		"plc_log_entries",
-		"account_infos",
-		"pds_repos",
+func ClearTables(db *gorm.DB, tables []string) error {
+	if len(tables) == 0 {
+		tables = []string{
+			"account_repos",
+			"plc_log_entries",
+			"account_infos",
+			"pds_repos",
+		}
 	}
 	for _, table := range tables {
 		if res := db.Exec("DELETE FROM " + table); res.Error != nil {
@@ -88,8 +90,10 @@ func ClearTables(db *gorm.DB) error {
 
 func DropTables(db *gorm.DB) error {
 	tables := []string{
+		"account_repos",
 		"plc_log_entries",
 		"account_infos",
+		"pds_repos",
 	}
 	for _, table := range tables {
 		if res := db.Exec("DROP TABLE IF EXISTS " + table); res.Error != nil {
