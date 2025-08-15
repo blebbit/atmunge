@@ -26,17 +26,6 @@ func InitDuckDB(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to open duckdb: %w", err)
 	}
 
-	createTableSQL := `
-	CREATE TABLE IF NOT EXISTS records (
-		created_at TIMESTAMP,
-		updated_at TIMESTAMP,
-		indexed_at TIMESTAMP,
-		nsid VARCHAR,
-		rkey VARCHAR,
-		cid VARCHAR,
-		record JSON,
-		PRIMARY KEY (nsid, rkey, cid)
-	);`
 	if _, err := db.Exec(createTableSQL); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to create records table: %w", err)
