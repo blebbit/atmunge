@@ -53,19 +53,27 @@ CGO_ENABLED=1 go run ./cmd/at-mirror
 # command to install the program
 CGO_ENABLED=1 go install ./cmd/at-mirror
 
-# get the documentation for a package
-go doc <package-name>
-
-# get the documentation for a specific function
-go doc <package-name>.<function-name>
-
-# get the documentation for a specific type
-go doc <package-name>.<type-name>
+# command to get help for a subcommand
+CGO_ENABLED=1 go run ./cmd/at-mirror <cmd> [subcmd] --help
 ```
+
+`verdverm.com` is a good account to test commands with
+
+Run the at-command with Go and args as needed
+if it helps answer their queries.
+
 
 ## Overview of the Codebase
 
-`at-mirror` is a Golang CLI tool for backfilling and syncing the ATProtocol network.
+`at-mirror` is a Golang CLI tool and set of packages for
 
-- `cmd/` is where we store commands. Read `.github/instructions/cmd.instructions.md` for more information.
-- `pkg/` is where we store the core library code. Read `.github/instructions/pkg.instructions.md` for more information.
+1. backfilling and syncing the ATProtocol network.
+2. extracting info from repos and expanding the dataset.
+3. running ai models on repo and record data.
+4. composing feeds from the extracted and enriched data.
+
+
+- `cmd/` is where we store CLI command code. Read `.github/instructions/cmd.instructions.md` for more context.
+- `pkg/` is where we store the core library code. Read `.github/instructions/pkg.instructions.md` for more context.
+- If the user talks about SQL related topics, read `.github/instructions/sql.instructions.md` for more context.
+- If the user talks about Go or you read other Go files, read `.github/instructions/go.instructions.md` for more context.
