@@ -2,6 +2,7 @@ package acct
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -36,7 +37,7 @@ func Sync(rt *runtime.Runtime, handleOrDID string, phase string) error {
 	case "car":
 		log.Info().Msgf("Syncing CAR file to %s", carPath)
 		blockstore, since, err := repo.LoadLocalCar(carPath)
-		if err != nil && !os.IsNotExist(err) {
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("failed to load local car: %w", err)
 		}
 

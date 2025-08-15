@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 )
 
+// TODO, these should be using the rate limiter proxy
+// check other repo functions for similar places we should be
+
 // ListBlobs fetches the list of all blob CIDs for a given repo, handling pagination.
 func ListBlobs(pdsHost, did string) ([]string, error) {
 	var allCids []string

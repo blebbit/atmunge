@@ -1,7 +1,6 @@
 package acct
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,7 +28,6 @@ func ExpandRefRecords(rt *runtime.Runtime, did string) error {
 
 func ExpandRefRepos(rt *runtime.Runtime, did string) error {
 	log.Info().Str("did", did).Msg("expanding ref repos for account")
-	ctx := context.Background()
 
 	dbPath := filepath.Join(rt.Cfg.RepoDataDir, did, "repo.duckdb")
 	db, err := repo.InitDuckDB(dbPath)
