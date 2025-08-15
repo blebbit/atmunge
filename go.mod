@@ -18,6 +18,7 @@ require (
 	github.com/marcboeker/go-duckdb/v2 v2.3.5
 	github.com/multiformats/go-multicodec v0.9.2
 	github.com/multiformats/go-multihash v0.2.3
+	github.com/nrednav/cuid2 v1.1.0
 	github.com/nuts-foundation/go-did v0.13.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.32.0

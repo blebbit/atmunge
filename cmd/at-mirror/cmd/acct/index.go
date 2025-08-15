@@ -34,7 +34,7 @@ var acctIndexCmd = &cobra.Command{
 			log.Fatal().Err(err).Msgf("failed to resolve %s", handleOrDID)
 		}
 
-		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did+".duckdb")
+		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did, "repo.duckdb")
 
 		err = acct.Index(ctx, dbPath, indexNames)
 		if err != nil {

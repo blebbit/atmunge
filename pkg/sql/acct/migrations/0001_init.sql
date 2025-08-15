@@ -1,5 +1,4 @@
 CREATE TABLE IF NOT EXISTS records (
-  -- for relational queries
   cuid TEXT PRIMARY KEY,
 
   -- time informations
@@ -20,12 +19,13 @@ CREATE TABLE IF NOT EXISTS records (
   extra JSON
 );
 
--- refs we extract from 
+-- refs we extract from
 CREATE TABLE IF NOT EXISTS refs (
-  cuid TEXT PRIMARY KEY,
+  -- hmmm, we are in sql when we index these, so we don't have cuid's
+  -- cuid TEXT PRIMARY KEY,
 
   -- where the ref was found
-  source TEXT -- a cuid
+  source TEXT, -- a cuid
 
   -- where the ref points to
   did TEXT,

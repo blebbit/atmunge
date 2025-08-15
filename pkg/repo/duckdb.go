@@ -15,6 +15,7 @@ import (
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/ipfs/go-cid"
 	_ "github.com/marcboeker/go-duckdb/v2"
+	"github.com/nrednav/cuid2"
 )
 
 func InitDuckDB(dbPath string) (*sql.DB, error) {
@@ -167,23 +168,32 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(`
-		INSERT INTO records (created_at, indexed_at, nsid, rkey, cid, record)
-		VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT (nsid, rkey, cid) DO UPDATE SET
-		created_at = excluded.created_at,
-		indexed_at = excluded.indexed_at,
-		record = excluded.record;
+		INSERT INTO records (cuid, created_at, indexed_at, updated_at, did, nsid, rkey, cid, record)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 	`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
+	repoDid := r.DID.String()
+
 	err = r.MST.Walk(func(k []byte, v cid.Cid) error {
 		col, rkey, err := syntax.ParseRepoPath(string(k))
 		if err != nil {
 			return err
 		}
+
+		// Check if record already exists
+		var count int
+		err = tx.QueryRow("SELECT COUNT(*) FROM records WHERE did = ? AND nsid = ? AND rkey = ? AND cid = ?", repoDid, col.String(), rkey.String(), v.String()).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("failed to check for existing record: %w", err)
+		}
+		if count > 0 {
+			return fmt.Errorf("record already exists: did=%s, nsid=%s, rkey=%s, cid=%s", repoDid, col.String(), rkey.String(), v.String())
+		}
+
 		recBytes, _, err := r.GetRecordBytes(ctx, col, rkey)
 		if err != nil {
 			return err
@@ -199,10 +209,15 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 			return err
 		}
 
-		var createdAt, indexedAt time.Time
+		var createdAt, updatedAt, indexedAt time.Time
 		if ca, ok := rec["createdAt"].(string); ok {
 			if t, err := time.Parse(time.RFC3339, ca); err == nil {
 				createdAt = t
+			}
+		}
+		if ua, ok := rec["updatedAt"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, ua); err == nil {
+				updatedAt = t
 			}
 		}
 		if ia, ok := rec["indexedAt"].(string); ok {
@@ -213,7 +228,13 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 			indexedAt = time.Now()
 		}
 
-		_, err = stmt.Exec(createdAt, indexedAt, col.String(), rkey.String(), v.String(), string(recJSON))
+		if err != nil {
+			return fmt.Errorf("failed to generate cuid: %w", err)
+		}
+
+		cuid := cuid2.Generate()
+
+		_, err = stmt.Exec(cuid, createdAt, indexedAt, updatedAt, repoDid, col.String(), rkey.String(), v.String(), string(recJSON))
 		return err
 	})
 

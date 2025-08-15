@@ -38,7 +38,7 @@ var acctQueryCmd = &cobra.Command{
 			log.Fatal().Err(err).Msgf("failed to resolve %s", handleOrDID)
 		}
 
-		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did+".duckdb")
+		dbPath := filepath.Join(rt.Cfg.RepoDataDir, did, "repo.duckdb")
 
 		results, err := acct.Query(ctx, dbPath, querySQLNames)
 		if err != nil {

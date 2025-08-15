@@ -2,8 +2,8 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
@@ -11,6 +11,8 @@ import (
 	"github.com/blebbit/at-mirror/pkg/config"
 	"github.com/blebbit/at-mirror/pkg/db"
 	"github.com/blebbit/at-mirror/pkg/runtime"
+	appsql "github.com/blebbit/at-mirror/pkg/sql"
+	_ "github.com/marcboeker/go-duckdb/v2"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
@@ -20,10 +22,9 @@ func init() {
 }
 
 var dbMigrateCmd = &cobra.Command{
-	Use:   "migrate [database]",
+	Use:   "migrate [database] [args...]",
 	Short: "Run database migrations",
 	Long:  `Run the database migrations to update the schema.`,
-	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
@@ -37,6 +38,11 @@ var dbMigrateCmd = &cobra.Command{
 			Str("method", "migrate").
 			Logger()
 
+		if len(args) < 1 {
+			return fmt.Errorf("database name required")
+		}
+		dbName := args[0]
+
 		// create our runtime
 		r, err := runtime.NewRuntime(ctx)
 		if err != nil {
@@ -44,7 +50,6 @@ var dbMigrateCmd = &cobra.Command{
 			return err
 		}
 
-		dbName := args[0]
 		switch dbName {
 		case "atm":
 			// db migrations (if needed)
@@ -54,24 +59,30 @@ var dbMigrateCmd = &cobra.Command{
 			}
 			log.Info().Msgf("atm DB schema updated")
 		case "acct":
-			// get the path to the migrations directory
-			// HACK: this is not a good way to do this
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("failed to get current working directory: %w", err)
+			if len(args) != 2 {
+				return fmt.Errorf("handle or DID is required for acct migration")
 			}
-			migrationsPath := filepath.Join(cwd, "pkg", "sql", "acct", "migrations")
+			handleOrDID := args[1]
 
-			sqlDB, err := r.DB.DB()
+			did, _, err := r.ResolveDid(ctx, handleOrDID)
 			if err != nil {
-				return fmt.Errorf("failed to get sql.DB: %w", err)
+				return fmt.Errorf("failed to resolve did for %s: %w", handleOrDID, err)
 			}
+
+			dbPath := filepath.Join(r.Cfg.RepoDataDir, did, "repo.duckdb")
+
+			dbConn, err := sql.Open("duckdb", dbPath)
+			if err != nil {
+				return fmt.Errorf("failed to open duckdb database at %s: %w", dbPath, err)
+			}
+			defer dbConn.Close()
+
 			// db migrations (if needed)
-			err = db.RunDuckDBMigrations(sqlDB, migrationsPath)
+			err = db.RunDuckDBMigrationsFromFS(dbConn, appsql.SQLFiles, "acct/migrations")
 			if err != nil {
 				return err
 			}
-			log.Info().Msgf("acct DB schema updated")
+			log.Info().Msgf("acct DB schema updated for %s", dbPath)
 		case "network":
 			log.Info().Msgf("network migration not implemented yet")
 		default:
