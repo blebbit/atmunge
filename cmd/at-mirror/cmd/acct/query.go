@@ -17,7 +17,7 @@ var queryOutputDest string
 
 func init() {
 	AcctCmd.AddCommand(acctQueryCmd)
-	acctQueryCmd.Flags().StringSliceVarP(&querySQLNames, "sql", "s", []string{}, "name of the adhoc query to run")
+	acctQueryCmd.Flags().StringSliceVarP(&querySQLNames, "sql", "s", []string{}, "name of the adhoc query to run, or a raw SQL query")
 	acctQueryCmd.Flags().StringVarP(&queryOutputDest, "output", "o", "-", "output file for results as JSON, or - for stdout")
 	acctQueryCmd.RegisterFlagCompletionFunc("sql", getValidArgs("acct/query"))
 }

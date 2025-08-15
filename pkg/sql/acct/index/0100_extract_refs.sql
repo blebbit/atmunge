@@ -9,4 +9,5 @@ SELECT
 FROM
   records AS r
 WHERE
-  r.nsid = 'app.bsky.feed.like';
+  r.nsid = 'app.bsky.feed.like'
+  AND r.cuid NOT IN (SELECT source FROM refs);
