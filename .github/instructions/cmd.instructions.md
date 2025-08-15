@@ -1,0 +1,59 @@
+---
+applyTo: "./cmd/**"
+---
+
+The command structure follows the directory structure:
+
+cmd/
+  at-mirror/
+    cmd/
+      acct/
+        acct.go
+        analyze.go
+        expand.go
+        feed.go
+        index.go
+        query.go
+        stats.go
+        sync.go
+      ai/
+        ai.go
+        chat.go
+        complete.go
+        embed.go
+        explain.go
+        hack.go
+        reply.go
+        safety.go
+        summarize.go
+        topics.go
+      backfill/
+        backfill.go
+        describe-repo.go
+        pds-accounts.go
+        plc-logs.go
+        repo-sync.go
+      config.go
+      db/
+        clear.go
+        db.go
+        duckdb.go
+        migrate.go
+        reset.go
+      plc/
+        annotate.go
+        plc.go
+      repo/
+        duckdb.go
+        hack.go
+        inspect.go
+        ls.go
+        mst.go
+        repo.go
+        sqlite.go
+        sync.go
+        unpack.go
+        utils.go
+      root.go
+      run.go
+    main.go
