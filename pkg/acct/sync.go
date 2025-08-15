@@ -22,8 +22,13 @@ func Sync(rt *runtime.Runtime, handleOrDID string, phase string) error {
 	}
 	log.Info().Msgf("Resolved %s to %s on PDS %s", handleOrDID, did, pds)
 
-	carPath := filepath.Join(rt.Cfg.RepoDataDir, did+".car")
-	duckdbPath := filepath.Join(rt.Cfg.RepoDataDir, did+".duckdb")
+	repoDir := filepath.Join(rt.Cfg.RepoDataDir, did)
+	if err := os.MkdirAll(repoDir, 0755); err != nil {
+		return fmt.Errorf("failed to create repo directory for %s: %w", did, err)
+	}
+
+	carPath := filepath.Join(repoDir, "repo.car")
+	duckdbPath := filepath.Join(repoDir, "repo.duckdb")
 
 	switch phase {
 	case "":
