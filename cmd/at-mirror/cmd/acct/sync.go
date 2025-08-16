@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var phase string
+var phases []string
 
 // acctSyncCmd represents the acctSync command
 var acctSyncCmd = &cobra.Command{
@@ -18,11 +18,11 @@ var acctSyncCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return acct.Sync(rt, args[0], phase)
+		return acct.Sync(rt, args[0], phases)
 	},
 }
 
 func init() {
 	AcctCmd.AddCommand(acctSyncCmd)
-	acctSyncCmd.Flags().StringVar(&phase, "phase", "", "phase to continue from (car, duckdb, blobs)")
+	acctSyncCmd.Flags().StringSliceVar(&phases, "phases", []string{}, "phases to run (car, duckdb, blobs)")
 }

@@ -12,8 +12,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Sync(rt *runtime.Runtime, handleOrDID string, phase string) error {
-	log.Info().Msgf("Syncing account: %s, starting from phase: %q", handleOrDID, phase)
+func Sync(rt *runtime.Runtime, handleOrDID string, phases []string) error {
+	if len(phases) == 0 {
+		phases = []string{"car", "duckdb", "blobs"}
+	}
+	log.Info().Msgf("Syncing account: %s, with phases: %v", handleOrDID, phases)
 	ctx := context.Background()
 
 	// 1. Resolve handle/DID and get PDS
@@ -31,47 +34,45 @@ func Sync(rt *runtime.Runtime, handleOrDID string, phase string) error {
 	carPath := filepath.Join(repoDir, "repo.car")
 	duckdbPath := filepath.Join(repoDir, "repo.duckdb")
 
-	switch phase {
-	case "":
-		fallthrough
-	case "car":
-		log.Info().Msgf("Syncing CAR file to %s", carPath)
-		blockstore, since, err := repo.LoadLocalCar(carPath)
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("failed to load local car: %w", err)
-		}
+	for _, phase := range phases {
+		switch phase {
+		case "car":
+			log.Info().Msgf("Syncing CAR file to %s", carPath)
+			blockstore, since, err := repo.LoadLocalCar(carPath)
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("failed to load local car: %w", err)
+			}
 
-		carData, err := repo.GetRepo(rt.Ctx, rt.Proxy, pds, did, since)
-		if err != nil {
-			return fmt.Errorf("failed to get repo: %w", err)
-		}
-
-		if len(carData) > 0 {
-			newRoot, _, _, err := repo.MergeUpdate(blockstore, carData)
+			carData, err := repo.GetRepo(rt.Ctx, rt.Proxy, pds, did, since)
 			if err != nil {
-				return fmt.Errorf("failed to merge update: %w", err)
+				return fmt.Errorf("failed to get repo: %w", err)
 			}
-			if err := repo.WriteCar(carPath, newRoot, blockstore); err != nil {
-				return fmt.Errorf("failed to write car: %w", err)
+
+			if len(carData) > 0 {
+				newRoot, _, _, err := repo.MergeUpdate(blockstore, carData)
+				if err != nil {
+					return fmt.Errorf("failed to merge update: %w", err)
+				}
+				if err := repo.WriteCar(carPath, newRoot, blockstore); err != nil {
+					return fmt.Errorf("failed to write car: %w", err)
+				}
+				log.Info().Msg("CAR file updated")
+			} else {
+				log.Info().Msg("CAR file is up to date")
 			}
-			log.Info().Msg("CAR file updated")
-		} else {
-			log.Info().Msg("CAR file is up to date")
+		case "duckdb":
+			log.Info().Msgf("Converting CAR to DuckDB at %s", duckdbPath)
+			if err := repo.CarToDuckDB(carPath, duckdbPath); err != nil {
+				return fmt.Errorf("failed to convert car to duckdb: %w", err)
+			}
+			log.Info().Msg("DuckDB conversion complete")
+		case "blobs":
+			log.Info().Msg("Syncing blobs")
+			repo.SyncBlobs(pds, did, rt.Cfg.RepoDataDir)
+			log.Info().Msg("Blob sync complete")
+		default:
+			return fmt.Errorf("unknown phase: %s", phase)
 		}
-		fallthrough
-	case "duckdb":
-		log.Info().Msgf("Converting CAR to DuckDB at %s", duckdbPath)
-		if err := repo.CarToDuckDB(carPath, duckdbPath); err != nil {
-			return fmt.Errorf("failed to convert car to duckdb: %w", err)
-		}
-		log.Info().Msg("DuckDB conversion complete")
-		fallthrough
-	case "blobs":
-		log.Info().Msg("Syncing blobs")
-		repo.SyncBlobs(pds, did, rt.Cfg.RepoDataDir)
-		log.Info().Msg("Blob sync complete")
-	default:
-		return fmt.Errorf("unknown phase: %s", phase)
 	}
 
 	log.Info().Msgf("Successfully synced account %s", handleOrDID)

@@ -41,7 +41,7 @@ func ExpandRefRepos(rt *runtime.Runtime, did string) error {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT DISTINCT did FROM refs WHERE did IS NOT NULL AND nsid IS NULL AND rkey IS NULL")
+	rows, err := db.Query("SELECT DISTINCT did FROM refs WHERE did IS NOT NULL")
 	if err != nil {
 		return fmt.Errorf("failed to query refs for %s: %w", did, err)
 	}
@@ -61,7 +61,7 @@ func ExpandRefRepos(rt *runtime.Runtime, did string) error {
 
 	for i, refDid := range refDids {
 		log.Info().Str("did", refDid).Int("n", i+1).Int("total", total).Msg("processing ref repo")
-		if err := Sync(rt, refDid, ""); err != nil {
+		if err := Sync(rt, refDid, []string{"car", "duckdb"}); err != nil {
 			log.Error().Err(err).Str("did", refDid).Msg("failed to sync ref repo")
 		}
 	}

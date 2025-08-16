@@ -191,7 +191,7 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 			return fmt.Errorf("failed to check for existing record: %w", err)
 		}
 		if count > 0 {
-			return fmt.Errorf("record already exists: did=%s, nsid=%s, rkey=%s, cid=%s", repoDid, col.String(), rkey.String(), v.String())
+			return nil // Record already exists, skip it
 		}
 
 		recBytes, _, err := r.GetRecordBytes(ctx, col, rkey)
