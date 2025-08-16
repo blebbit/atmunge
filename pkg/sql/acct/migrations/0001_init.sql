@@ -40,5 +40,5 @@ CREATE TABLE IF NOT EXISTS refs (
   -- extra stuff
   extra JSON,
 
-  UNIQUE(did, nsid, rkey)
+  UNIQUE(source, did, nsid, rkey)
 );

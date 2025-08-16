@@ -9,7 +9,7 @@ FROM
   records AS r
 WHERE
   r.nsid = 'app.bsky.feed.like'
-  AND r.cuid NOT IN (SELECT source FROM refs);
+ON CONFLICT (source, did, nsid, rkey) DO NOTHING;
 
 -- extract reposts
 INSERT INTO refs (source, did, nsid, rkey)
@@ -22,18 +22,20 @@ FROM
   records AS r
 WHERE
   r.nsid = 'app.bsky.feed.repost'
-  AND r.cuid NOT IN (SELECT source FROM refs);
+ON CONFLICT (source, did, nsid, rkey) DO NOTHING;
 
 -- extract follows
-INSERT INTO refs (source, did)
+INSERT INTO refs (source, did, nsid, rkey)
 SELECT
   r.cuid as source,
-  json_extract_string(r.record, '$.subject') as did
+  json_extract_string(r.record, '$.subject') as did,
+  '' as nsid,
+  '' as rkey
 FROM
   records AS r
 WHERE
   r.nsid = 'app.bsky.graph.follow'
-  AND r.cuid NOT IN (SELECT source FROM refs);
+ON CONFLICT (source, did, nsid, rkey) DO NOTHING;
 
 -- extract replies to posts
 INSERT INTO refs (source, did, nsid, rkey)
@@ -48,15 +50,17 @@ WHERE
   r.nsid = 'app.bsky.feed.post'
   AND json_extract_string(r.record, '$.reply.parent.uri') IS NOT NULL
   AND split_part(json_extract_string(r.record, '$.reply.parent.uri'), '/', 4) IN ('app.bsky.feed.post', 'app.bsky.feed.repost')
-  AND r.cuid NOT IN (SELECT source FROM refs);
+ON CONFLICT (source, did, nsid, rkey) DO NOTHING;
 
 -- extract list items from subject
-INSERT INTO refs (source, did)
+INSERT INTO refs (source, did, nsid, rkey)
 SELECT
   r.cuid as source,
-  json_extract_string(r.record, '$.subject') as did
+  json_extract_string(r.record, '$.subject') as did,
+  '' as nsid,
+  '' as rkey
 FROM
   records AS r
 WHERE
   r.nsid = 'app.bsky.graph.listitem'
-  AND r.cuid NOT IN (SELECT source FROM refs);
+ON CONFLICT (source, did, nsid, rkey) DO NOTHING;
