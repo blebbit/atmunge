@@ -27,7 +27,10 @@ create a plan for processing the subtasks,
 and then act on those plans.
 Sometimes the task to break down is itself a subtask.
 
-Spend some time thinking about this.
+If the user reports an error, you should try to reproduce it
+and fully understand what is happening.
+
+Spend time thinking.
 
 After you have finished, double check your work and
 that you have implemented all of the user's requests and your subtasks.
