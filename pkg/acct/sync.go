@@ -62,7 +62,7 @@ func Sync(rt *runtime.Runtime, handleOrDID string, phases []string) error {
 			}
 		case "duckdb":
 			log.Info().Msgf("Converting CAR to DuckDB at %s", duckdbPath)
-			if err := repo.CarToDuckDB(carPath, duckdbPath); err != nil {
+			if err := repo.CarToDuckDB(rt.Ctx, carPath, duckdbPath); err != nil {
 				return fmt.Errorf("failed to convert car to duckdb: %w", err)
 			}
 			log.Info().Msg("DuckDB conversion complete")

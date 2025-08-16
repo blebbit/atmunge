@@ -44,7 +44,15 @@ func InitDuckDB(dbPath string) (*sql.DB, error) {
 	return dbConn, nil
 }
 
-func CarToDuckDB(carPath string, dbPath string) error {
+func CarToDuckDB(ctx context.Context, carPath string, dbPath string) error {
+	// Initialize the database first
+	db, err := InitDuckDB(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to init duckdb: %w", err)
+	}
+	defer db.Close()
+
+	// Open and read the CAR file
 	f, err := os.Open(carPath)
 	if err != nil {
 		return fmt.Errorf("failed to open car file: %w", err)
@@ -56,7 +64,8 @@ func CarToDuckDB(carPath string, dbPath string) error {
 		return fmt.Errorf("failed to read repo from car: %w", err)
 	}
 
-	return RepoToDuckDB(r, dbPath)
+	// Save the records to the database
+	return SaveRecordsToDuckDB(ctx, r, db)
 }
 
 func RepoToDuckDB(r *indigoRepo.Repo, dbPath string) error {
@@ -69,97 +78,6 @@ func RepoToDuckDB(r *indigoRepo.Repo, dbPath string) error {
 	return SaveRecordsToDuckDB(context.Background(), r, db)
 }
 
-func BlockstoreToDuckDB(ctx context.Context, bsMap map[cid.Cid][]byte, root cid.Cid, dbPath string) error {
-	r, err := BlockstoreToRepo(ctx, bsMap, root)
-	if err != nil {
-		return fmt.Errorf("failed to convert blockstore to repo: %w", err)
-	}
-	return RepoToDuckDB(r, dbPath)
-}
-
-func SaveNewRecordsToDuckDB(ctx context.Context, bsMap map[cid.Cid][]byte, newBlocks map[cid.Cid][]byte, root cid.Cid, dbPath string) error {
-	r, err := BlockstoreToRepo(ctx, bsMap, root)
-	if err != nil {
-		return fmt.Errorf("failed to convert blockstore to repo: %w", err)
-	}
-
-	db, err := InitDuckDB(dbPath)
-	if err != nil {
-		return fmt.Errorf("failed to init duckdb: %w", err)
-	}
-	defer db.Close()
-
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	stmt, err := tx.Prepare(`
-		INSERT INTO records (created_at, indexed_at, updated_at, did, nsid, rkey, cid, record)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-	`)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	// get the DID from the MST here
-
-	err = r.MST.Walk(func(k []byte, v cid.Cid) error {
-		if _, isNew := newBlocks[v]; !isNew {
-			return nil
-		}
-
-		col, rkey, err := syntax.ParseRepoPath(string(k))
-		if err != nil {
-			return err
-		}
-		recBytes, _, err := r.GetRecordBytes(ctx, col, rkey)
-		if err != nil {
-			return err
-		}
-
-		rec, err := data.UnmarshalCBOR(recBytes)
-		if err != nil {
-			return err
-		}
-
-		recJSON, err := json.Marshal(rec)
-		if err != nil {
-			return err
-		}
-
-		var createdAt, updatedAt, indexedAt time.Time
-		if ca, ok := rec["createdAt"].(string); ok {
-			if t, err := time.Parse(time.RFC3339, ca); err == nil {
-				createdAt = t
-			}
-		}
-		if ca, ok := rec["updatedAt"].(string); ok {
-			if t, err := time.Parse(time.RFC3339, ca); err == nil {
-				updatedAt = t
-			}
-		}
-		if ia, ok := rec["indexedAt"].(string); ok {
-			if t, err := time.Parse(time.RFC3339, ia); err == nil {
-				indexedAt = t
-			}
-		} else {
-			indexedAt = time.Now()
-		}
-
-		_, err = stmt.Exec(createdAt, indexedAt, updatedAt, col.String(), rkey.String(), v.String(), string(recJSON))
-		return err
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
 func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) error {
 	tx, err := db.Begin()
 	if err != nil {
@@ -169,7 +87,8 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 
 	stmt, err := tx.Prepare(`
 		INSERT INTO records (cuid, created_at, indexed_at, updated_at, did, nsid, rkey, cid, record)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(did, nsid, rkey, cid) DO NOTHING;
 	`)
 	if err != nil {
 		return err
@@ -182,16 +101,6 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 		col, rkey, err := syntax.ParseRepoPath(string(k))
 		if err != nil {
 			return err
-		}
-
-		// Check if record already exists
-		var count int
-		err = tx.QueryRow("SELECT COUNT(*) FROM records WHERE did = ? AND nsid = ? AND rkey = ? AND cid = ?", repoDid, col.String(), rkey.String(), v.String()).Scan(&count)
-		if err != nil {
-			return fmt.Errorf("failed to check for existing record: %w", err)
-		}
-		if count > 0 {
-			return nil // Record already exists, skip it
 		}
 
 		recBytes, _, err := r.GetRecordBytes(ctx, col, rkey)
@@ -226,10 +135,6 @@ func SaveRecordsToDuckDB(ctx context.Context, r *indigoRepo.Repo, db *sql.DB) er
 			}
 		} else {
 			indexedAt = time.Now()
-		}
-
-		if err != nil {
-			return fmt.Errorf("failed to generate cuid: %w", err)
 		}
 
 		cuid := cuid2.Generate()

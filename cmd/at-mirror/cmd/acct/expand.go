@@ -1,6 +1,8 @@
 package acct
 
 import (
+	"fmt"
+
 	"github.com/blebbit/at-mirror/pkg/acct"
 	"github.com/blebbit/at-mirror/pkg/runtime"
 	"github.com/rs/zerolog/log"
@@ -11,8 +13,26 @@ import (
 var acctExpandCmd = &cobra.Command{
 	Use:   "expand [handle-or-did] [what-to-expand]",
 	Short: "Expand an account's social graph",
-	Args:  cobra.ExactArgs(2),
+	Long: `Expand an account's social graph.
+
+You can list the available expansion targets with:
+at-mirror acct expand list
+`,
+	Args: cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 1 && args[0] == "list" {
+			fmt.Println("Available expansion targets:")
+			for _, key := range acct.GetExpansionKeys() {
+				fmt.Printf("- %s\n", key)
+			}
+			return
+		}
+
+		if len(args) != 2 {
+			cmd.Help()
+			return
+		}
+
 		rt, err := runtime.NewRuntime(cmd.Context())
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to create runtime")

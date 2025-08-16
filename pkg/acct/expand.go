@@ -10,15 +10,29 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Expand(rt *runtime.Runtime, did string, what string) error {
-	switch what {
-	case "ref-records":
-		return ExpandRefRecords(rt, did)
-	case "ref-repos":
-		return ExpandRefRepos(rt, did)
-	default:
-		return fmt.Errorf("unknown expansion target: %s", what)
+// ExpansionFunc defines the signature for functions that can be used for expansion.
+type ExpansionFunc func(rt *runtime.Runtime, did string) error
+
+// expansionFuncs is a map of what-to-expand strings to their corresponding functions.
+var expansionFuncs = map[string]ExpansionFunc{
+	"ref-records": ExpandRefRecords,
+	"ref-repos":   ExpandRefRepos,
+}
+
+// GetExpansionKeys returns a slice of strings containing the keys of the expansionFuncs map.
+func GetExpansionKeys() []string {
+	keys := make([]string, 0, len(expansionFuncs))
+	for k := range expansionFuncs {
+		keys = append(keys, k)
 	}
+	return keys
+}
+
+func Expand(rt *runtime.Runtime, did string, what string) error {
+	if fn, ok := expansionFuncs[what]; ok {
+		return fn(rt, did)
+	}
+	return fmt.Errorf("unknown expansion target: %s", what)
 }
 
 func ExpandRefRecords(rt *runtime.Runtime, did string) error {

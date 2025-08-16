@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS records (
   record JSON,
 
   -- extra stuff
-  extra JSON
+  extra JSON,
+
+  UNIQUE(did, nsid, rkey, cid)
 );
 
 -- refs we extract from
@@ -36,5 +38,7 @@ CREATE TABLE IF NOT EXISTS refs (
   record JSON,
 
   -- extra stuff
-  extra JSON
+  extra JSON,
+
+  UNIQUE(did, nsid, rkey)
 );

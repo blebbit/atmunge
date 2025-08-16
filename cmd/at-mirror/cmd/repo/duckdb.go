@@ -49,7 +49,7 @@ var repoDuckDBCmd = &cobra.Command{
 		dbPath := filepath.Join(r.Cfg.RepoDataDir, did, "repo.duckdb")
 
 		log.Info().Msgf("Converting %s to %s", carFile, dbPath)
-		if err := repo.CarToDuckDB(carFile, dbPath); err != nil {
+		if err := repo.CarToDuckDB(ctx, carFile, dbPath); err != nil {
 			return fmt.Errorf("failed to convert CAR to DuckDB: %w", err)
 		}
 		log.Info().Msgf("Successfully converted %s to %s", carFile, dbPath)
