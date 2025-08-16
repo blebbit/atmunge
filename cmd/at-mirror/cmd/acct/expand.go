@@ -11,7 +11,7 @@ import (
 
 // acctExpandCmd represents the acctExpand command
 var acctExpandCmd = &cobra.Command{
-	Use:   "expand [handle-or-did] [what-to-expand]",
+	Use:   "expand [what-to-expand] [handle-or-did]",
 	Short: "Expand an account's social graph",
 	Long: `Expand an account's social graph.
 
@@ -38,8 +38,8 @@ at-mirror acct expand list
 			log.Fatal().Err(err).Msg("failed to create runtime")
 		}
 
-		handleOrDID := args[0]
-		what := args[1]
+		what := args[0]
+		handleOrDID := args[1]
 
 		did, _, err := rt.ResolveDid(cmd.Context(), handleOrDID)
 		if err != nil {
