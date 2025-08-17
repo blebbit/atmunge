@@ -2,5 +2,5 @@ package sql
 
 import "embed"
 
-//go:embed acct
+//go:embed acct app
 var SQLFiles embed.FS
