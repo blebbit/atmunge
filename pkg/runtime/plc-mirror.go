@@ -19,7 +19,11 @@ func (r *Runtime) StartPLCMirror() {
 					log.Error().Err(err).Msgf("Failed to get new log entries from PLC: %s", err)
 				}
 			}
-			time.Sleep(time.Duration(r.Cfg.PlcMirrorDelay) * time.Second)
+			// check if we need to sleep, we get here when the mirror catches up and new records are coming in fast
+			delay := time.Duration(r.Cfg.PlcMirrorDelay) * time.Second
+			if time.Since(r.lastRecordTimestamp) < delay {
+				time.Sleep(delay)
+			}
 		}
 	}
 }

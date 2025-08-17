@@ -222,13 +222,11 @@ func (r *Runtime) BackfillPlcLogs() error {
 			}
 		}
 
-		// update timestamp & rate-limiter
+		// update lastest timestamp
 		if !lastTimestamp.IsZero() {
 			r.plcMutex.Lock()
 			r.lastRecordTimestamp = lastTimestamp
 			r.plcMutex.Unlock()
-
-			// r.updateRateLimit(lastTimestamp)
 		}
 
 		log.Info().Msgf("%d | %d | %d | %d | %d entries. New cursor: %q", good, bad, errs, good+bad+errs, len(newEntries), cursor)

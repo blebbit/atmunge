@@ -56,10 +56,10 @@ var runCmd = &cobra.Command{
 
 		s := server.NewServer(r)
 		// start server
-		log.Info().Msgf("Starting HTTP listener on %q...", ":1323")
+		log.Info().Msgf("Starting HTTP listener on %q...", ":"+r.Cfg.HTTPPort)
 
 		go func() {
-			if err := s.Echo().Start(":1323"); err != nil && err != http.ErrServerClosed {
+			if err := s.Echo().Start(":" + r.Cfg.HTTPPort); err != nil && err != http.ErrServerClosed {
 				s.Echo().Logger.Fatal("shutting down the server")
 			}
 		}()

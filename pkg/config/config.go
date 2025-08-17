@@ -15,7 +15,7 @@ type Config struct {
 	// plc config
 	PlcUpstream    string `split_words:"true" default:"https://plc.directory/export"`
 	PlcFilter      bool   `split_words:"true" default:"false"`
-	PlcMirrorDelay int    `split_words:"true" default:"6"`
+	PlcMirrorDelay int    `split_words:"true" default:"10"`
 
 	// repo config
 	RepoDataDir string `split_words:"true" default:"./data/repos"`
@@ -24,7 +24,7 @@ type Config struct {
 	RunPlcMirror  bool   `split_words:"true" default:"true"`
 	RunRepoMirror bool   `split_words:"true" default:"false"`
 	RunServer     bool   `split_words:"true" default:"true"`
-	HTTPPort      string `split_words:"true" default:"1323"`
+	HTTPPort      string `split_words:"true" default:"4000"`
 
 	// AI config
 	OllamaHost string `split_words:"true" default:"http://localhost:11434"`
