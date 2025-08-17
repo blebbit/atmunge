@@ -11,31 +11,13 @@ import (
 	"strings"
 	"time"
 
+	atdb "github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/at-mirror/pkg/plc"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"
-
-	atdb "github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/plc"
+	"gorm.io/gorm/clause"
 )
-
-func (r *Runtime) StartPLCMirror() {
-	log := zerolog.Ctx(r.Ctx).With().Str("module", "plc").Logger()
-	for {
-		select {
-		case <-r.Ctx.Done():
-			log.Info().Msgf("PLC mirror stopped")
-			return
-		default:
-			if err := r.BackfillPlcLogs(); err != nil {
-				if r.Ctx.Err() == nil {
-					log.Error().Err(err).Msgf("Failed to get new log entries from PLC: %s", err)
-				}
-			}
-			time.Sleep(time.Duration(r.Cfg.PlcMirrorDelay) * time.Second)
-		}
-	}
-}
 
 func (r *Runtime) BackfillPlcLogs() error {
 	log := zerolog.Ctx(r.Ctx)
@@ -201,6 +183,29 @@ func (r *Runtime) BackfillPlcLogs() error {
 			// add to tmp collections
 			good++
 			newEntries = append(newEntries, row)
+
+			info := atdb.AccountInfoFromOp(entry)
+
+			// add to the account info table
+			val := atdb.AccountInfo{
+				DID:    row.DID,
+				PDS:    info.PDS,
+				Handle: info.Handle,
+			}
+
+			err = r.DB.
+				Model(&atdb.AccountInfo{}).
+				Clauses(
+					clause.OnConflict{
+						Columns:   []clause.Column{{Name: "did"}},
+						DoUpdates: clause.AssignmentColumns([]string{"pds", "handle"}),
+					},
+				).
+				Create(&val).Error
+			if err != nil {
+				log.Error().Err(err).Msgf("failed to create AccountInfo entry for %s", row.DID)
+				return err
+			}
 		}
 
 		// check if we are caught up, end inf loop if so
