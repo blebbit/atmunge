@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -37,13 +39,20 @@ var runCmd = &cobra.Command{
 			log.Error().Msgf("failed to create runtime: %s", err)
 			return err
 		}
+		jsonBytes, jerr := json.MarshalIndent(r.Cfg, "", "  ")
+		if jerr != nil {
+			fmt.Println("Error marshalling config to JSON:", jerr)
+			return jerr
+		}
+		log.Info().Msgf(string(jsonBytes))
 
 		// (maybe) start mirror
-		// if r.Cfg.RunPlcMirror {
-		// 	go func() {
-		// 		r.StartPLCMirror()
-		// 	}()
-		// }
+		if r.Cfg.RunPlcMirror {
+			log.Info().Msgf("Starting PLC log backfill...")
+			go func() {
+				r.StartPLCMirror()
+			}()
+		}
 
 		s := server.NewServer(r)
 		// start server

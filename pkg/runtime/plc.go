@@ -19,40 +19,26 @@ import (
 	"github.com/blebbit/at-mirror/pkg/plc"
 )
 
-// func (r *Runtime) StartPLCMirror() {
-// 	log := zerolog.Ctx(r.Ctx).With().Str("module", "plc").Logger()
-// 	for {
-// 		select {
-// 		case <-r.Ctx.Done():
-// 			log.Info().Msgf("PLC mirror stopped")
-// 			return
-// 		default:
-// 			if err := r.BackfillMirror(); err != nil {
-// 				if r.Ctx.Err() == nil {
-// 					log.Error().Err(err).Msgf("Failed to get new log entries from PLC: %s", err)
-// 				}
-// 			} else {
-// 				now := time.Now()
-// 				r.plcMutex.Lock()
-// 				r.lastCompletionTimestamp = now
-// 				r.plcMutex.Unlock()
-// 			}
-// 			time.Sleep(10 * time.Second)
-// 		}
-// 	}
-// }
+func (r *Runtime) StartPLCMirror() {
+	log := zerolog.Ctx(r.Ctx).With().Str("module", "plc").Logger()
+	for {
+		select {
+		case <-r.Ctx.Done():
+			log.Info().Msgf("PLC mirror stopped")
+			return
+		default:
+			if err := r.BackfillPlcLogs(); err != nil {
+				if r.Ctx.Err() == nil {
+					log.Error().Err(err).Msgf("Failed to get new log entries from PLC: %s", err)
+				}
+			}
+			time.Sleep(time.Duration(r.Cfg.PlcMirrorDelay) * time.Second)
+		}
+	}
+}
 
 func (r *Runtime) BackfillPlcLogs() error {
 	log := zerolog.Ctx(r.Ctx)
-
-	log.Info().Msgf("Starting PLC log backfill...")
-	jsonBytes, jerr := json.MarshalIndent(r.Cfg, "", "  ")
-	if jerr != nil {
-		fmt.Println("Error marshalling config to JSON:", jerr)
-		return jerr
-	}
-	log.Info().Msgf(string(jsonBytes))
-	// fmt.Println(string(jsonBytes))
 
 	cursor := ""
 	err := r.DB.WithContext(r.Ctx).Model(&atdb.PLCLogEntry{}).
@@ -219,7 +205,7 @@ func (r *Runtime) BackfillPlcLogs() error {
 
 		// check if we are caught up, end inf loop if so
 		if cursor == oldCursor {
-			log.Warn().Msgf("Caught up with PLC logs, no new entries found. %s", cursor)
+			// log.Warn().Msgf("Caught up with PLC logs, no new entries found. %s", cursor)
 			break
 		}
 

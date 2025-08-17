@@ -142,29 +142,13 @@ func (s *Server) DidDoc(c echo.Context) error {
 		requestLatency.WithLabelValues(fmt.Sprint(c)).Observe(float64(time.Since(start)) / float64(time.Millisecond))
 	}
 
-	// Check if the mirror is up to date.
-	ts, err := s.r.LastRecordTimestamp(s.r.Ctx)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	delay := time.Since(ts)
-	if delay > s.r.MaxDelay {
-		// Check LastCompletion and if it's recent enough - that means
-		// that we're actually caught up and there simply aren't any recent
-		// PLC operations.
-		completionDelay := time.Since(s.r.LastCompletion())
-		if completionDelay > s.r.MaxDelay {
-			updateMetrics(http.StatusServiceUnavailable)
-			return c.String(http.StatusServiceUnavailable, fmt.Sprintf("mirror is %s behind", delay))
-		}
-	}
 	log := zerolog.Ctx(s.r.Ctx)
 
 	requestedDid := c.Param("did")
 
 	// lookup entry in db
 	var entry atdb.PLCLogEntry
-	err = s.r.DB.Model(&entry).Where("did = ? AND (NOT nullified)", requestedDid).Order("plc_timestamp desc").Limit(1).Take(&entry).Error
+	err := s.r.DB.Model(&entry).Where("did = ? AND (NOT nullified)", requestedDid).Order("plc_timestamp desc").Limit(1).Take(&entry).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		updateMetrics(http.StatusNotFound)
 		return c.String(http.StatusNotFound, "unknown DID")

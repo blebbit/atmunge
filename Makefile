@@ -12,8 +12,14 @@ all:
 	@echo "Please edit .env to suit your environment before proceeding"
 	@exit 1
 
+# To pass arguments to the run command, use `make run args="..."`
+# For example: make run args="server --help"
+run:
+	@CGO_ENABLED=1 go run ./cmd/at-mirror $(or $(args),$(filter-out $@,$(MAKECMDGOALS)))
 build:
-	@docker compose build
+	CGO_ENABLED=1 go build ./cmd/at-mirror
+install:
+	CGO_ENABLED=1 go install ./cmd/at-mirror
 
 up:
 	@docker compose up -d --build

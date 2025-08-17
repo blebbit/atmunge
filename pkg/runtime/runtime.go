@@ -25,11 +25,10 @@ type Runtime struct {
 	Client *http.Client
 
 	// PLC mirror fields
-	MaxDelay                time.Duration
-	limiter                 *rate.Limiter
-	plcMutex                sync.RWMutex
-	lastCompletionTimestamp time.Time
-	lastRecordTimestamp     time.Time
+	MaxDelay            time.Duration
+	limiter             *rate.Limiter
+	plcMutex            sync.RWMutex
+	lastRecordTimestamp time.Time
 
 	// Account sync fields
 	acctMutex            sync.RWMutex
@@ -62,12 +61,6 @@ func NewRuntime(ctx context.Context) (*Runtime, error) {
 	}
 
 	return r, nil
-}
-
-func (r *Runtime) LastCompletion() time.Time {
-	r.plcMutex.RLock()
-	defer r.plcMutex.RUnlock()
-	return r.lastCompletionTimestamp
 }
 
 func (r *Runtime) LastRecordTimestamp(ctx context.Context) (time.Time, error) {
