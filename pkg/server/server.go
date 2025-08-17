@@ -24,6 +24,7 @@ type Server struct {
 
 func NewServer(r *runtime.Runtime) *Server {
 	e := echo.New()
+	e.HideBanner = true
 	s := &Server{
 		e: e,
 		r: r,
