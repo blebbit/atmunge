@@ -5,41 +5,41 @@ import (
 )
 
 type GenerateRequest struct {
-	Model    string   `json:"model"`
-	Prompt   string   `json:"prompt"`
-	Suffix   string   `json:"suffix,omitempty"`
-	Images   []string `json:"images,omitempty"`
-	Format   string   `json:"format,omitempty"`
-	Options  map[string]interface{} `json:"options,omitempty"`
-	System   string   `json:"system,omitempty"`
-	Template string   `json:"template,omitempty"`
-	Context  []int    `json:"context,omitempty"`
-	Stream   bool     `json:"stream"`
-	Raw      bool     `json:"raw,omitempty"`
-	KeepAlive string  `json:"keep_alive,omitempty"`
+	Model     string   `json:"model"`
+	Prompt    string   `json:"prompt"`
+	Suffix    string   `json:"suffix,omitempty"`
+	Images    []string `json:"images,omitempty"`
+	Format    string   `json:"format,omitempty"`
+	Options   Options  `json:"options,omitempty"`
+	System    string   `json:"system,omitempty"`
+	Template  string   `json:"template,omitempty"`
+	Context   []int    `json:"context,omitempty"`
+	Stream    bool     `json:"stream"`
+	Raw       bool     `json:"raw,omitempty"`
+	KeepAlive string   `json:"keep_alive,omitempty"`
 }
 
 type GenerateResponse struct {
-	Model           string    `json:"model"`
-	CreatedAt       time.Time `json:"created_at"`
-	Response        string    `json:"response"`
-	Done            bool      `json:"done"`
-	Context         []int     `json:"context,omitempty"`
-	TotalDuration   int64     `json:"total_duration,omitempty"`
-	LoadDuration    int64     `json:"load_duration,omitempty"`
-	PromptEvalCount int       `json:"prompt_eval_count,omitempty"`
-	PromptEvalDuration int64  `json:"prompt_eval_duration,omitempty"`
-	EvalCount       int       `json:"eval_count,omitempty"`
-	EvalDuration    int64     `json:"eval_duration,omitempty"`
+	Model              string    `json:"model"`
+	CreatedAt          time.Time `json:"created_at"`
+	Response           string    `json:"response"`
+	Done               bool      `json:"done"`
+	Context            []int     `json:"context,omitempty"`
+	TotalDuration      int64     `json:"total_duration,omitempty"`
+	LoadDuration       int64     `json:"load_duration,omitempty"`
+	PromptEvalCount    int       `json:"prompt_eval_count,omitempty"`
+	PromptEvalDuration int64     `json:"prompt_eval_duration,omitempty"`
+	EvalCount          int       `json:"eval_count,omitempty"`
+	EvalDuration       int64     `json:"eval_duration,omitempty"`
 }
 
 type ChatRequest struct {
-	Model    string    `json:"model"`
-	Messages []Message `json:"messages"`
-	Stream   bool      `json:"stream"`
-	Format   string    `json:"format,omitempty"`
-	KeepAlive string   `json:"keep_alive,omitempty"`
-	Options  map[string]interface{} `json:"options,omitempty"`
+	Model     string    `json:"model"`
+	Messages  []Message `json:"messages"`
+	Stream    bool      `json:"stream"`
+	Format    string    `json:"format,omitempty"`
+	KeepAlive string    `json:"keep_alive,omitempty"`
+	Options   Options   `json:"options,omitempty"`
 }
 
 type Message struct {
@@ -49,16 +49,16 @@ type Message struct {
 }
 
 type ChatResponse struct {
-	Model     string    `json:"model"`
-	CreatedAt time.Time `json:"created_at"`
-	Message   Message   `json:"message"`
-	Done      bool      `json:"done"`
-	TotalDuration   int64     `json:"total_duration,omitempty"`
-	LoadDuration    int64     `json:"load_duration,omitempty"`
-	PromptEvalCount int       `json:"prompt_eval_count,omitempty"`
-	PromptEvalDuration int64  `json:"prompt_eval_duration,omitempty"`
-	EvalCount       int       `json:"eval_count,omitempty"`
-	EvalDuration    int64     `json:"eval_duration,omitempty"`
+	Model              string    `json:"model"`
+	CreatedAt          time.Time `json:"created_at"`
+	Message            Message   `json:"message"`
+	Done               bool      `json:"done"`
+	TotalDuration      int64     `json:"total_duration,omitempty"`
+	LoadDuration       int64     `json:"load_duration,omitempty"`
+	PromptEvalCount    int       `json:"prompt_eval_count,omitempty"`
+	PromptEvalDuration int64     `json:"prompt_eval_duration,omitempty"`
+	EvalCount          int       `json:"eval_count,omitempty"`
+	EvalDuration       int64     `json:"eval_duration,omitempty"`
 }
 
 type ListModelsResponse struct {
@@ -66,24 +66,24 @@ type ListModelsResponse struct {
 }
 
 type Model struct {
-	Name       string    `json:"name"`
-	ModifiedAt time.Time `json:"modified_at"`
-	Size       int64     `json:"size"`
-	Digest     string    `json:"digest"`
+	Name       string       `json:"name"`
+	ModifiedAt time.Time    `json:"modified_at"`
+	Size       int64        `json:"size"`
+	Digest     string       `json:"digest"`
 	Details    ModelDetails `json:"details"`
 }
 
 type ModelDetails struct {
-	Format           string   `json:"format"`
-	Family           string   `json:"family"`
-	Families         []string `json:"families"`
-	ParameterSize    string   `json:"parameter_size"`
-	QuantizationLevel string  `json:"quantization_level"`
+	Format            string   `json:"format"`
+	Family            string   `json:"family"`
+	Families          []string `json:"families"`
+	ParameterSize     string   `json:"parameter_size"`
+	QuantizationLevel string   `json:"quantization_level"`
 }
 
 type ShowModelRequest struct {
-	Model string `json:"model"`
-	Verbose bool `json:"verbose,omitempty"`
+	Model   string `json:"model"`
+	Verbose bool   `json:"verbose,omitempty"`
 }
 
 type ShowModelResponse struct {
@@ -131,19 +131,19 @@ type CreateModelRequest struct {
 }
 
 type EmbeddingsRequest struct {
-	Model  string   `json:"model"`
-	Input  []string `json:"input"`
-	Truncate bool    `json:"truncate,omitempty"`
-	Options map[string]interface{} `json:"options,omitempty"`
-	KeepAlive string `json:"keep_alive,omitempty"`
+	Model     string   `json:"model"`
+	Input     []string `json:"input"`
+	Truncate  bool     `json:"truncate,omitempty"`
+	Options   Options  `json:"options,omitempty"`
+	KeepAlive string   `json:"keep_alive,omitempty"`
 }
 
 type EmbeddingsResponse struct {
-	Model       string      `json:"model"`
-	Embeddings  [][]float64 `json:"embeddings"`
-	TotalDuration int64     `json:"total_duration,omitempty"`
-	LoadDuration  int64     `json:"load_duration,omitempty"`
-	PromptEvalCount int     `json:"prompt_eval_count,omitempty"`
+	Model           string      `json:"model"`
+	Embeddings      [][]float64 `json:"embeddings"`
+	TotalDuration   int64       `json:"total_duration,omitempty"`
+	LoadDuration    int64       `json:"load_duration,omitempty"`
+	PromptEvalCount int         `json:"prompt_eval_count,omitempty"`
 }
 
 type ListRunningModelsResponse struct {
@@ -151,11 +151,42 @@ type ListRunningModelsResponse struct {
 }
 
 type RunningModel struct {
-	Name       string       `json:"name"`
-	Model      string       `json:"model"`
-	Size       int64        `json:"size"`
-	Digest     string       `json:"digest"`
-	Details    ModelDetails `json:"details"`
-	ExpiresAt  time.Time    `json:"expires_at"`
-	SizeVRAM   int64        `json:"size_vram"`
+	Name      string       `json:"name"`
+	Model     string       `json:"model"`
+	Size      int64        `json:"size"`
+	Digest    string       `json:"digest"`
+	Details   ModelDetails `json:"details"`
+	ExpiresAt time.Time    `json:"expires_at"`
+	SizeVRAM  int64        `json:"size_vram"`
+}
+
+type Options struct {
+	NumKeep          int      `json:"num_keep,omitempty"`
+	Seed             int      `json:"seed,omitempty"`
+	NumPredict       int      `json:"num_predict,omitempty"`
+	TopK             int      `json:"top_k,omitempty"`
+	TopP             float64  `json:"top_p,omitempty"`
+	MinP             float64  `json:"min_p,omitempty"`
+	TfsZ             float64  `json:"tfs_z,omitempty"`
+	TypicalP         float64  `json:"typical_p,omitempty"`
+	RepeatLastN      int      `json:"repeat_last_n,omitempty"`
+	Temperature      float64  `json:"temperature,omitempty"`
+	RepeatPenalty    float64  `json:"repeat_penalty,omitempty"`
+	PresencePenalty  float64  `json:"presence_penalty,omitempty"`
+	FrequencyPenalty float64  `json:"frequency_penalty,omitempty"`
+	Mirostat         int      `json:"mirostat,omitempty"`
+	MirostatTau      float64  `json:"mirostat_tau,omitempty"`
+	MirostatEta      float64  `json:"mirostat_eta,omitempty"`
+	PenalizeNewline  bool     `json:"penalize_newline,omitempty"`
+	Stop             []string `json:"stop,omitempty"`
+	Numa             bool     `json:"numa,omitempty"`
+	NumCtx           int      `json:"num_ctx,omitempty"`
+	NumBatch         int      `json:"num_batch,omitempty"`
+	NumGpu           int      `json:"num_gpu,omitempty"`
+	MainGpu          int      `json:"main_gpu,omitempty"`
+	LowVram          bool     `json:"low_vram,omitempty"`
+	VocabOnly        bool     `json:"vocab_only,omitempty"`
+	UseMmap          bool     `json:"use_mmap,omitempty"`
+	UseMlock         bool     `json:"use_mlock,omitempty"`
+	NumThread        int      `json:"num_thread,omitempty"`
 }
