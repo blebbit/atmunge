@@ -18,8 +18,8 @@ import (
 
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Run the at-mirror in sync & server mode",
-	Long:  "Run the at-mirror in sync & server mode",
+	Short: "Run the atmunge in sync & server mode",
+	Long:  "Run the atmunge in sync & server mode",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()

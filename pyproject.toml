@@ -1,5 +1,5 @@
 [project]
-name = "at-mirror"
+name = "atmunge"
 version = "0.1.0"
 description = "ATProtocol mirroring utilities"
 readme = "README.md"

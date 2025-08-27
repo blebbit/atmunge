@@ -10,7 +10,7 @@ A collection of tools and utilities for backfilling, mirroring, and analyzing th
 
 ```sh
 # install the cli
-CGO_ENABLED=1 go install ./cmd/at-mirror
+CGO_ENABLED=1 go install ./cmd/atmunge
 
 # setup the env
 cp env-example .env
@@ -19,7 +19,7 @@ cp env-example .env
 docker compose up -d db
 
 # run db migrations
-at-mirror db migrate
+atmunge db migrate
 ```
 
 Deps:
@@ -29,14 +29,14 @@ Deps:
 
 Downloads:
 
-TODO, rename R2 dir to at-mirror (really nuke and re-upload)
+TODO, rename R2 dir to atmunge (really nuke and re-upload)
 
 Database dumps to prefill and save time with
 
-- [plc_log_entries-raw-20250706.sql.zst](https://public.blebbit.dev/at-mirror/plc_log_entries-raw-20250706.sql.zst)
-- [plc_log_entries-filtered-20250706.sql.zst](https://public.blebbit.dev/at-mirror/plc_log_entries-filtered-20250706.sql.zst)
-- [pds_repos-2025-0714.sql.zst](https://public.blebbit.dev/at-mirror/pds_repos-20250714.sql.zst)
-- [account_infos-2025-0714.sql.zst](https://public.blebbit.dev/at-mirror/account_infos-20250714.sql.zst)
+- [plc_log_entries-raw-20250706.sql.zst](https://public.blebbit.dev/atmunge/plc_log_entries-raw-20250706.sql.zst)
+- [plc_log_entries-filtered-20250706.sql.zst](https://public.blebbit.dev/atmunge/plc_log_entries-filtered-20250706.sql.zst)
+- [pds_repos-2025-0714.sql.zst](https://public.blebbit.dev/atmunge/pds_repos-20250714.sql.zst)
+- [account_infos-2025-0714.sql.zst](https://public.blebbit.dev/atmunge/account_infos-20250714.sql.zst)
 
 
 ## Backfilling
@@ -56,29 +56,29 @@ Backfill:
 
 ```sh
 # backfill the raw PLC logs (~12h when starting from zero)
-at-mirror backfill plc-logs [--fliter]
+atmunge backfill plc-logs [--fliter]
 
 # backfill the pds_repos list (~4h)
-at-mirror backfill pds-accounts
+atmunge backfill pds-accounts
 
 # backfill the accounts_infos table (~20h)
 #   describe repo (status + collections)
 #   (also writes to the pds_repos table to update status)
-at-mirror backfill describe-repo
+atmunge backfill describe-repo
 ```
 
 Download Repos:
 
 ```sh
 # WARN, this will chew up disk, you probably need around 10T for the CAR files (Aug'25)
-at-mirror backfill repo-sync
+atmunge backfill repo-sync
 
 # fetch CAR for an account
-at-mirror repo sync verdverm.com
+atmunge repo sync verdverm.com
 
 # convert to a database
-at-mirror repo duckdb ./data/repos/<did>.car
-at-mirror repo sqlite ./data/repos/<did>.car
+atmunge repo duckdb ./data/repos/<did>.car
+atmunge repo sqlite ./data/repos/<did>.car
 ```
 
 

@@ -44,7 +44,7 @@ func GetConfig() (*Config, error) {
 
 func LoadConfig() error {
 	var c Config
-	err := envconfig.Process("atmirror", &c)
+	err := envconfig.Process("atmunge", &c)
 	if err != nil {
 		return err
 	}

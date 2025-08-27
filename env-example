@@ -1,14 +1,14 @@
 # Note the port here matches the docker-compose file
-ATMIRROR_POSTGRES_URL="postgres://atmirror:atmirror@localhost:5555/atmirror?sslmode=disable"
+ATMUNGE_POSTGRES_URL="postgres://atmunge:atmunge@localhost:5555/atmunge?sslmode=disable"
 
 # PLC Options
-ATMIRROR_PLC_FILTER=false
-ATMIRROR_PLC_FILTER_KEEP=true
-ATMIRROR_PLC_CONFLICT_UPDATE=false
-ATMIRROR_PLC_CONFLICT_KEEP=true
+ATMUNGE_PLC_FILTER=false
+ATMUNGE_PLC_FILTER_KEEP=true
+ATMUNGE_PLC_CONFLICT_UPDATE=false
+ATMUNGE_PLC_CONFLICT_KEEP=true
 
 # Repo Sync Options
-ATMIRROR_REPO_DATA_DIR=./data/repos
+ATMUNGE_REPO_DATA_DIR=./data/repos
 
 # Ollama Settings
-ATMIRROR_OLLAMA_HOST=http://localhost:11434
+ATMUNGE_OLLAMA_HOST=http://localhost:11434

@@ -16,7 +16,7 @@ var acctExpandCmd = &cobra.Command{
 	Long: `Expand an account's social graph.
 
 You can list the available expansion targets with:
-at-mirror acct expand list
+atmunge acct expand list
 `,
 	Args: cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {

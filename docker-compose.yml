@@ -1,16 +1,16 @@
 volumes:
-  atmirror_db_data:
+  atmunge_db_data:
 
 services:
   db:
     image: "postgres:16"
     restart: always
     environment:
-      POSTGRES_DB: atmirror
-      POSTGRES_USER: atmirror
-      POSTGRES_PASSWORD: atmirror
+      POSTGRES_DB: atmunge
+      POSTGRES_USER: atmunge
+      POSTGRES_PASSWORD: atmunge
     volumes:
-      - atmirror_db_data:/var/lib/postgresql/data
+      - atmunge_db_data:/var/lib/postgresql/data
     ports:
     - "5555:5432"
 
@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
-    image: blebbit/at-mirror
+    image: blebbit/atmunge
     deploy:
       resources:
         limits:
@@ -28,8 +28,8 @@ services:
       db:
         condition: service_started
     environment:
-      ATMIRROR_METRICS_PORT: '1323'
-      ATMIRROR_POSTGRES_URL: "postgres://atmirror:atmirror@db/atmirror?sslmode=disable"
+      ATMUNGE_METRICS_PORT: '1323'
+      ATMUNGE_POSTGRES_URL: "postgres://atmunge:atmunge@db/atmunge?sslmode=disable"
     ports:
       - "0.0.0.0:11004:1323"
     command: [ "--log-level=0", "--run-mirror=false" ]

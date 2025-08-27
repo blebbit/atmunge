@@ -16,7 +16,7 @@ Guidance on changes:
 - Ensure you are not repeating changes
 - Reference other files for module imports before considering `go get` them
 - Consult `go doc...` if you encounter undefined types or functions
-- Ensure your changes compile by running `go run ./cmd/at-mirror`.
+- Ensure your changes compile by running `go run ./cmd/atmunge`.
 - After compiling works, run command(s) to test changes.
 
 ## Instructions for subdividing the problem
@@ -51,13 +51,13 @@ You can safely run the following commands without asking.
 
 ```sh
 # command to check if the code compiles
-CGO_ENABLED=1 go run ./cmd/at-mirror
+CGO_ENABLED=1 go run ./cmd/atmunge
 
 # command to install the program
-CGO_ENABLED=1 go install ./cmd/at-mirror
+CGO_ENABLED=1 go install ./cmd/atmunge
 
 # command to get help for a subcommand
-CGO_ENABLED=1 go run ./cmd/at-mirror <cmd> [subcmd] --help
+CGO_ENABLED=1 go run ./cmd/atmunge <cmd> [subcmd] --help
 ```
 
 `verdverm.com` is a good account to test commands with
@@ -68,7 +68,7 @@ if it helps answer their queries.
 
 ## Overview of the Codebase
 
-`at-mirror` is a Golang CLI tool and set of packages for
+`atmunge` is a Golang CLI tool and set of packages for
 
 1. backfilling and syncing the ATProtocol network.
 2. extracting info from repos and expanding the dataset.

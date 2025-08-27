@@ -34,7 +34,7 @@ Plan:
 ##### first event, https://uwu, 92000 -> 172000
 
 ```
-atmirror=# SELECT filtered, COUNT(*) FROM plc_log_entries WHERE id < 1000000 GROUP BY filtered;
+atmunge=# SELECT filtered, COUNT(*) FROM plc_log_entries WHERE id < 1000000 GROUP BY filtered;
  filtered | count  
 ----------+--------
         0 | 988248
@@ -42,7 +42,7 @@ atmirror=# SELECT filtered, COUNT(*) FROM plc_log_entries WHERE id < 1000000 GRO
         3 |  11727
 (3 rows)
 
-atmirror=# SELECT notes, COUNT(*) FROM plc_log_entries WHERE id < 1000000 GROUP BY notes;
+atmunge=# SELECT notes, COUNT(*) FROM plc_log_entries WHERE id < 1000000 GROUP BY notes;
                    notes                   | count  
 -------------------------------------------+--------
  HDL:0:data-x; PDS:known-bad; DOC:make-doc |  11704

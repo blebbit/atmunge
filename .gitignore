@@ -6,6 +6,6 @@ go.work*
 csv_export.tgz
 *.override.yml
 /data
-/at-mirror
+/atmunge
 .ipynb_checkpoints
 .prompt.md

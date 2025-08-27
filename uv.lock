@@ -4,7 +4,7 @@ requires-python = ">=3.13"
 
 [manifest]
 members = [
-    "at-mirror",
+    "atmunge",
     "plc",
 ]
 
@@ -95,7 +95,7 @@ wheels = [
 ]
 
 [[package]]
-name = "at-mirror"
+name = "atmunge"
 version = "0.1.0"
 source = { virtual = "." }
 

@@ -1,7 +1,7 @@
-Command files are under the `./cmd/at-mirror/cmd/...` directory
+Command files are under the `./cmd/atmunge/cmd/...` directory
 with the following layout
 
-cmd/at-mirror/
+cmd/atmunge/
   main.go
   cmd/
     root.go

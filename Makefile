@@ -1,5 +1,5 @@
 # vars
-DB_URL=postgres://atmirror:atmirror@localhost:5555/atmirror?sslmode=disable
+DB_URL=postgres://atmunge:atmunge@localhost:5555/atmunge?sslmode=disable
 DATE=$(shell date +"%Y%m%d")
 
 .PHONY: all build up update down start-db status logs
@@ -15,11 +15,11 @@ all:
 # To pass arguments to the run command, use `make run args="..."`
 # For example: make run args="server --help"
 run:
-	@CGO_ENABLED=1 go run ./cmd/at-mirror $(or $(args),$(filter-out $@,$(MAKECMDGOALS)))
+	@CGO_ENABLED=1 go run ./cmd/atmunge $(or $(args),$(filter-out $@,$(MAKECMDGOALS)))
 build:
-	CGO_ENABLED=1 go build ./cmd/at-mirror
+	CGO_ENABLED=1 go build ./cmd/atmunge
 install:
-	CGO_ENABLED=1 go install ./cmd/at-mirror
+	CGO_ENABLED=1 go install ./cmd/atmunge
 
 up:
 	@docker compose up -d --build
@@ -33,7 +33,7 @@ start-db:
 	@docker compose up -d postgres
 
 psql:
-	docker exec -it at-mirror-db-1 psql -U atmirror -d atmirror
+	docker exec -it atmunge-db-1 psql -U atmunge -d atmunge
 
 status:
 	@docker compose stats

@@ -5,7 +5,7 @@ applyTo: "./cmd/**"
 The command structure follows the directory structure:
 
 cmd/
-  at-mirror/
+  atmunge/
     cmd/
       acct/
         acct.go

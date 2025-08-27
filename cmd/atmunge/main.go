@@ -5,7 +5,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 
-	"github.com/blebbit/atmunge/cmd/at-mirror/cmd"
+	"github.com/blebbit/atmunge/cmd/atmunge/cmd"
 	"github.com/blebbit/atmunge/pkg/config"
 )
 
