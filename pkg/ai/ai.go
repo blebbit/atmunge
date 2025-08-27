@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

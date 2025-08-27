@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
 )
 
 // Embed embeds a post

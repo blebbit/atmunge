@@ -1,4 +1,4 @@
-module github.com/blebbit/at-mirror
+module github.com/blebbit/atmunge
 
 go 1.24
 

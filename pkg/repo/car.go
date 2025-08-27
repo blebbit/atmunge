@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/blebbit/at-mirror/pkg/rlproxy"
+	"github.com/blebbit/atmunge/pkg/rlproxy"
 	cbor "github.com/fxamacker/cbor/v2"
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"

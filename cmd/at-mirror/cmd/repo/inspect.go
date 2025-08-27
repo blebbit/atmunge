@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/blebbit/at-mirror/pkg/repo"
+	"github.com/blebbit/atmunge/pkg/repo"
 	"github.com/spf13/cobra"
 )
 

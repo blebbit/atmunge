@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/blebbit/at-mirror/pkg/repo"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/repo"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/rs/zerolog/log"
 )
 

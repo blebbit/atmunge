@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"github.com/blebbit/at-mirror/pkg/util/gormzerolog"
+	"github.com/blebbit/atmunge/pkg/util/gormzerolog"
 )
 
 var dbSingleton *gorm.DB

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/blebbit/at-mirror/pkg/plc"
+	"github.com/blebbit/atmunge/pkg/plc"
 )
 
 // should be same as type of gorm.Model.ID

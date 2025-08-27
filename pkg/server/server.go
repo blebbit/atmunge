@@ -11,10 +11,10 @@ import (
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 
-	"github.com/blebbit/at-mirror/pkg/db"
-	atdb "github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/plc"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/db"
+	atdb "github.com/blebbit/atmunge/pkg/db"
+	"github.com/blebbit/atmunge/pkg/plc"
+	"github.com/blebbit/atmunge/pkg/runtime"
 )
 
 type Server struct {

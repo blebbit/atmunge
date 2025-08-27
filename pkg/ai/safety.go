@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
 )
 
 const defaultSafetySystemPrompt = `You are an expert at assessing the safety of social media posts.

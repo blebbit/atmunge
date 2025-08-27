@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/blebbit/at-mirror/pkg/plc"
+	"github.com/blebbit/atmunge/pkg/plc"
 )
 
 func plcUrl() *url.URL {

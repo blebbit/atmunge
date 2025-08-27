@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	atdb "github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/plc"
+	atdb "github.com/blebbit/atmunge/pkg/db"
+	"github.com/blebbit/atmunge/pkg/plc"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"

@@ -3,8 +3,8 @@ package repo
 import (
 	"log"
 
-	"github.com/blebbit/at-mirror/pkg/acct"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/acct"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 

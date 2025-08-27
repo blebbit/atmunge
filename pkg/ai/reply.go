@@ -3,7 +3,7 @@ package ai
 import (
 	"context"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
 )
 
 const defaultReplySystemPrompt = `You are an expert at replying to social media posts.

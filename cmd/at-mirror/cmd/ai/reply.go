@@ -3,7 +3,7 @@ package ai
 import (
 	"fmt"
 
-	"github.com/blebbit/at-mirror/pkg/ai"
+	"github.com/blebbit/atmunge/pkg/ai"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )

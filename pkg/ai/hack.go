@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
-	"github.com/blebbit/at-mirror/pkg/repo"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/repo"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 )
 

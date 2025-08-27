@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/repo"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/config"
+	"github.com/blebbit/atmunge/pkg/repo"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/bluesky-social/indigo/atproto/data"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/ipfs/go-cid"

@@ -5,8 +5,8 @@ import (
 	_ "net/http/pprof"
 	"os"
 
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd"
-	"github.com/blebbit/at-mirror/pkg/config"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd"
+	"github.com/blebbit/atmunge/pkg/config"
 )
 
 func main() {

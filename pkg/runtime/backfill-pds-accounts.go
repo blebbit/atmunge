@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/atmunge/pkg/db"
 	"gorm.io/gorm/clause"
 )
 

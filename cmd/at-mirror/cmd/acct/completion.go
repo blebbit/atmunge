@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blebbit/at-mirror/pkg/sql"
+	"github.com/blebbit/atmunge/pkg/sql"
 	"github.com/spf13/cobra"
 )
 

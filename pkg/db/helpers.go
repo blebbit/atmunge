@@ -3,7 +3,7 @@ package db
 import (
 	"strings"
 
-	"github.com/blebbit/at-mirror/pkg/plc"
+	"github.com/blebbit/atmunge/pkg/plc"
 )
 
 func PLCLogEntryFromOp(op plc.OperationLogEntry) PLCLogEntry {

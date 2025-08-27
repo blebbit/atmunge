@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/runtime"
-	"github.com/blebbit/at-mirror/pkg/server"
+	"github.com/blebbit/atmunge/pkg/config"
+	"github.com/blebbit/atmunge/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/server"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )

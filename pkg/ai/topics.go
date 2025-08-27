@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
 )
 
 const defaultTopicsSystemPrompt = `You are an expert at identifying topics in social media posts.

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/blebbit/at-mirror/pkg/acct"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/acct"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )

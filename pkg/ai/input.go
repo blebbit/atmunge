@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/blebbit/at-mirror/pkg/repo"
+	"github.com/blebbit/atmunge/pkg/repo"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 )
 

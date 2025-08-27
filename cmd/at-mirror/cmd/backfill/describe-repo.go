@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/config"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )

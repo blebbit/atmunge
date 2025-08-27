@@ -10,10 +10,10 @@ import (
 	"golang.org/x/time/rate"
 	"gorm.io/gorm"
 
-	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/db"
-	plcdb "github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/rlproxy"
+	"github.com/blebbit/atmunge/pkg/config"
+	"github.com/blebbit/atmunge/pkg/db"
+	plcdb "github.com/blebbit/atmunge/pkg/db"
+	"github.com/blebbit/atmunge/pkg/rlproxy"
 )
 
 type Runtime struct {

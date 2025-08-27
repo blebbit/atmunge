@@ -3,7 +3,7 @@ package runtime
 import (
 	"fmt"
 
-	"github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/atmunge/pkg/db"
 )
 
 // WARNING: args should not come from user input, this is for internal use only

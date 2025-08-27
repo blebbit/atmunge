@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
-	"github.com/blebbit/at-mirror/pkg/ai"
+	"github.com/blebbit/atmunge/pkg/ai"
 )
 
 func init() {

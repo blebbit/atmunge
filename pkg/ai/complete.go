@@ -3,7 +3,7 @@ package ai
 import (
 	"context"
 
-	"github.com/blebbit/at-mirror/pkg/ai/ollama"
+	"github.com/blebbit/atmunge/pkg/ai/ollama"
 )
 
 func (a *AI) Complete(ctx context.Context, model, systemPrompt, userPrompt string) (string, error) {

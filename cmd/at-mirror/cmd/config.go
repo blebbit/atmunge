@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/blebbit/at-mirror/pkg/config"
+	"github.com/blebbit/atmunge/pkg/config"
 )
 
 func init() {

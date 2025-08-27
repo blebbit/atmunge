@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/acct"
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/ai"
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/backfill"
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/db"
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/plc"
-	"github.com/blebbit/at-mirror/cmd/at-mirror/cmd/repo"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd/acct"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd/ai"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd/backfill"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd/db"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd/plc"
+	"github.com/blebbit/atmunge/cmd/at-mirror/cmd/repo"
 	"github.com/spf13/cobra"
 )
 
 const rootLong = `
 AT Mirror is a set of tools for backfilling and mirroring the AT Protocol network
 
-Documentation and source code: https://github.com/blebbit/at-mirror
+Documentation and source code: https://github.com/blebbit/atmunge
 `
 
 var rootCmd = &cobra.Command{

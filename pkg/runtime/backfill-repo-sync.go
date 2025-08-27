@@ -13,8 +13,8 @@ import (
 	"github.com/wandb/parallel"
 	"gorm.io/gorm/clause"
 
-	atdb "github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/repo"
+	atdb "github.com/blebbit/atmunge/pkg/db"
+	"github.com/blebbit/atmunge/pkg/repo"
 )
 
 // we should build a channel into this

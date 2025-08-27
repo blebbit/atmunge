@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/blebbit/at-mirror/pkg/config"
-	"github.com/blebbit/at-mirror/pkg/db"
-	"github.com/blebbit/at-mirror/pkg/repo"
-	"github.com/blebbit/at-mirror/pkg/runtime"
+	"github.com/blebbit/atmunge/pkg/config"
+	"github.com/blebbit/atmunge/pkg/db"
+	"github.com/blebbit/atmunge/pkg/repo"
+	"github.com/blebbit/atmunge/pkg/runtime"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )

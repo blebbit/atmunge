@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/blebbit/at-mirror/pkg/db"
+	"github.com/blebbit/atmunge/pkg/db"
 	"github.com/bluesky-social/indigo/atproto/data"
 	indigoRepo "github.com/bluesky-social/indigo/atproto/repo"
 	"github.com/bluesky-social/indigo/atproto/syntax"

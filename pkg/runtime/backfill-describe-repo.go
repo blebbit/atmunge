@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	atdb "github.com/blebbit/at-mirror/pkg/db"
+	atdb "github.com/blebbit/atmunge/pkg/db"
 	"github.com/rs/zerolog"
 	"github.com/wandb/parallel"
 
