@@ -1,0 +1,7 @@
+accelerate>=1.10.1
+bentoml>=1.4.22
+pillow>=11.3.0
+requests>=2.32.5
+torch>=2.8.0
+torchvision>=0.23.0
+transformers>=4.56.0

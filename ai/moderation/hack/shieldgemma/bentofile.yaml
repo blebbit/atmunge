@@ -1,0 +1,16 @@
+# in a file named `bentofile.yaml`
+service: "service:ShieldGemmaService"
+labels:
+  owner: blebbit
+  project: safety-classifier
+include:
+  - "*.py" # Include all python files
+python:
+  packages:
+    - torch
+    - transformers
+    - accelerate
+    - Pillow
+    - requests
+models:
+  - "google/shieldgemma-2-4b-it" # Instructs BentoML to download and manage this model
