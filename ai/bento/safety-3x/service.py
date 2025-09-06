@@ -12,8 +12,7 @@ print(f"Using device: {device}")
 # Init the server
 app = FastAPI()
 
-IMAGE = bentoml.images.PythonImage(python_version='3.13')
-  # .requirements_file('requirements.txt')
+IMAGE = bentoml.images.PythonImage(python_version='3.13').requirements_file('requirements.txt')
 
 #
 # Helper class definitions
@@ -68,9 +67,11 @@ class Shieldgemma:
     # Extract the logits for the Yes and No tokens
     vocab = self.tokenizer.get_vocab()
     selected_logits = logits[0, -1, [vocab["Yes"], vocab["No"]]]
+    print(selected_logits)
 
     # Convert these logits to a probability with softmax
     probabilities = torch.softmax(selected_logits, dim=0)
+    print(probabilities)
 
     return ShieldResponse(score=probabilities[0].item(), prompt=prompt)
 

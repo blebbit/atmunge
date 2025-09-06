@@ -20,7 +20,7 @@ class Shieldgemma2Response(pydantic.BaseModel):
   resources={
     # "cpu": 1,
     # "memory": "4Gi",
-    "gpu": 2,
+    "gpu": 1,
     # "gpu_type": "nvidia-l4"
   },
   traffic={"concurrency": 5, "timeout": 300},
@@ -33,7 +33,6 @@ class Gemma:
   def __init__(self):
 
 
-    # self.model = ShieldGemma2ForImageClassification.from_pretrained(MODEL_ID)
     self.model = ShieldGemma2ForImageClassification.from_pretrained(MODEL_ID, device_map="auto")
     self.processor = AutoProcessor.from_pretrained(MODEL_ID)
 
@@ -47,6 +46,8 @@ class Gemma:
   @bentoml.api
   async def check(self,
     imageUrl: str = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/bee.jpg"
+    customPolicies: dict(str) = {}
+    policies: list(str) = []
   ) -> Shieldgemma2Response:
 
     image = Image.open(requests.get(imageUrl, stream=True).raw)
@@ -66,6 +67,7 @@ class Gemma:
     with torch.inference_mode():
         scores = self.model(**model_inputs)
 
-    print(scores.probabilities)
+    print("scores:", scores)
+    print("predictions:",scoce.probabilities)
 
     return Shieldgemma2Response(scores=scores.probabilities)
