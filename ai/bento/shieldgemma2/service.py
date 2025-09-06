@@ -46,8 +46,8 @@ class Gemma:
   @bentoml.api
   async def check(self,
     imageUrl: str = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/bee.jpg"
-    customPolicies: dict(str) = {}
-    policies: list(str) = []
+    # customPolicies: dict(str) = {}
+    # policies: list(str) = []
   ) -> Shieldgemma2Response:
 
     image = Image.open(requests.get(imageUrl, stream=True).raw)
@@ -68,6 +68,6 @@ class Gemma:
         scores = self.model(**model_inputs)
 
     print("scores:", scores)
-    print("predictions:",scoce.probabilities)
+    print("predictions:", scores.probabilities)
 
     return Shieldgemma2Response(scores=scores.probabilities)

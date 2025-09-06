@@ -10,10 +10,8 @@ print(f"Using device: {device}")
 
 
 
-# MODEL_ID = "google/gemma-3-4b-it"
+MODEL_ID = "google/gemma-3-4b-it"
 # MODEL_ID = "google/gemma-3-27b-it"
-MODEL_ID = "unsloth/gemma-3-27b-it-bnb-4bit"
-# MODEL_ID = "MISHANM/google-gemma-3-27b-it-fp8"
 IMAGE = bentoml.images.PythonImage(python_version='3.13')
   # .requirements_file('requirements.txt')
 
