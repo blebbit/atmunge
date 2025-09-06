@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/blebbit/atmunge/pkg/runtime"
@@ -28,6 +29,8 @@ type FirehoseClient struct {
 	seenSeqs  map[int64]struct{}
 	highwater int64
 	logger    *slog.Logger
+
+	postCnt atomic.Int64
 }
 
 func NewFirehoseClient(r *runtime.Runtime) (*FirehoseClient, error) {
@@ -78,7 +81,7 @@ func (fc *FirehoseClient) ConnectAndRead(ctx context.Context) error {
 				eventsRead := fc.Client.EventsRead.Load()
 				bytesRead := fc.Client.BytesRead.Load()
 				avgEventSize := bytesRead / max(1, eventsRead)
-				fc.Logger.Info("stats", "events_read", eventsRead, "bytes_read", bytesRead, "avg_event_size", avgEventSize, "cursor", time.UnixMicro(fc.cursor).Local().Format("15:04:05"))
+				fc.Logger.Info("stats", "events_read", eventsRead, "bytes_read", bytesRead, "avg_event_size", avgEventSize, "cursor", time.UnixMicro(fc.cursor).Local().Format("15:04:05"), "posts", fc.postCnt.Load())
 			}
 		}
 	}()
@@ -105,6 +108,7 @@ func (fc *FirehoseClient) HandleEvent(ctx context.Context, event *models.Event) 
 	if event.Commit != nil && (event.Commit.Operation == models.CommitOperationCreate || event.Commit.Operation == models.CommitOperationUpdate) {
 		switch event.Commit.Collection {
 		case "app.bsky.feed.post":
+			fc.postCnt.Add(1)
 			var post apibsky.FeedPost
 			if err := json.Unmarshal(event.Commit.Record, &post); err != nil {
 				return fmt.Errorf("failed to unmarshal post: %w", err)
