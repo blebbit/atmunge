@@ -12,7 +12,6 @@ import (
 
 	"github.com/blebbit/atmunge/pkg/config"
 	"github.com/blebbit/atmunge/pkg/db"
-	plcdb "github.com/blebbit/atmunge/pkg/db"
 	"github.com/blebbit/atmunge/pkg/rlproxy"
 )
 
@@ -37,13 +36,7 @@ type Runtime struct {
 }
 
 func NewRuntime(ctx context.Context) (*Runtime, error) {
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	// db setup
-	DB, err := db.GetClient(cfg.DBUrl, ctx)
+	appCfg, err := config.GetConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +45,20 @@ func NewRuntime(ctx context.Context) (*Runtime, error) {
 
 	r := &Runtime{
 		Ctx:      ctx,
-		Cfg:      cfg,
-		DB:       DB,
+		Cfg:      appCfg,
 		Proxy:    rlproxy.New(client),
 		Client:   client,
 		limiter:  rate.NewLimiter(plcRateLimit, 4),
 		MaxDelay: plcMaxDelay,
+	}
+
+	if r.Cfg.DBUrl != "" {
+		// db setup
+		DB, err := db.GetClient(r.Cfg.DBUrl, ctx)
+		if err != nil {
+			return nil, err
+		}
+		r.DB = DB
 	}
 
 	return r, nil
@@ -72,7 +73,7 @@ func (r *Runtime) LastRecordTimestamp(ctx context.Context) (time.Time, error) {
 	}
 
 	ts := ""
-	err := r.DB.WithContext(ctx).Model(&plcdb.PLCLogEntry{}).Select("plc_timestamp").Order("plc_timestamp desc").Limit(1).Take(&ts).Error
+	err := r.DB.WithContext(ctx).Model(&db.PLCLogEntry{}).Select("plc_timestamp").Order("plc_timestamp desc").Limit(1).Take(&ts).Error
 	if err != nil {
 		return time.Time{}, err
 	}

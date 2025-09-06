@@ -5,7 +5,8 @@ go 1.24
 toolchain go1.24.4
 
 require (
-	github.com/bluesky-social/indigo v0.0.0-20250729223159-573ae927246a
+	github.com/bluesky-social/indigo v0.0.0-20250808182429-6f0837c2d12b
+	github.com/bluesky-social/jetstream v0.0.0-20250815235753-306e46369336
 	github.com/fxamacker/cbor/v2 v2.9.0
 	github.com/ipfs/go-block-format v0.2.2
 	github.com/ipfs/go-cid v0.5.0
@@ -45,6 +46,7 @@ require (
 	github.com/duckdb/duckdb-go-bindings/linux-amd64 v0.1.12 // indirect
 	github.com/duckdb/duckdb-go-bindings/linux-arm64 v0.1.12 // indirect
 	github.com/duckdb/duckdb-go-bindings/windows-amd64 v0.1.12 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
@@ -52,6 +54,9 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -70,7 +75,7 @@ require (
 	github.com/ipfs/go-merkledag v0.11.0 // indirect
 	github.com/ipfs/go-metrics-interface v0.3.0 // indirect
 	github.com/ipfs/go-verifcid v0.0.3 // indirect
-	github.com/ipld/go-car v0.6.1-0.20230509095817-92d28eb23ba4 // indirect
+	github.com/ipld/go-car v0.6.2 // indirect
 	github.com/ipld/go-codec-dagpb v1.7.0 // indirect
 	github.com/ipld/go-ipld-prime v0.21.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -118,6 +123,7 @@ require (
 	gitlab.com/yawning/secp256k1-voi v0.0.0-20230925100816-f2616030848b // indirect
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect

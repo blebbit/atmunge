@@ -40,4 +40,5 @@ func init() {
 	rootCmd.AddCommand(plc.PLCCmd)
 	rootCmd.AddCommand(repo.RepoCmd)
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(firehoseCmd)
 }

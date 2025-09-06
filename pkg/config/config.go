@@ -26,6 +26,9 @@ type Config struct {
 	RunServer     bool   `split_words:"true" default:"true"`
 	HTTPPort      string `split_words:"true" default:"4000"`
 
+	// firehose config
+	RelayHost string `split_words:"true" default:"jetstream2.us-west.bsky.network"`
+
 	// AI config
 	OllamaHost string `split_words:"true" default:"http://localhost:11434"`
 }
