@@ -1,5 +1,6 @@
-from __future__ import annotations
 import bentoml, pydantic
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
 # from openai import AsyncOpenAI
 
 MODEL_ID = "google/shieldgemma-2b"
@@ -22,14 +23,10 @@ correctly.
 """
 
 
-class ShieldResponse(pydantic.BaseModel):
+class ShieldgemmaResponse(pydantic.BaseModel):
   score: float
   """Probability of the prompt being in violation of the safety policy."""
   prompt: str
-
-
-class AssistantResponse(pydantic.BaseModel):
-  text: str
 
 
 @bentoml.service(
@@ -42,19 +39,16 @@ class AssistantResponse(pydantic.BaseModel):
   # envs=[{'name': 'HF_TOKEN'}],
   image=IMAGE
 )
-class Gemma:
+class Shieldgemma:
   model = bentoml.models.HuggingFaceModel(MODEL_ID)
 
   def __init__(self):
-    import torch
-    from transformers import AutoTokenizer, AutoModelForCausalLM
 
     self.model = AutoModelForCausalLM.from_pretrained(self.model, device_map="auto", torch_dtype=torch.float16)
     self.tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
   @bentoml.api
-  async def check(self, prompt: str = "Create 20 paraphrases of I love you") -> ShieldResponse:
-    import torch
+  async def check(self, prompt: str = "Create 20 paraphrases of I love you") -> ShieldgemmaResponse:
 
     inputs = self.tokenizer.apply_chat_template(
       [{"role": "user", "content": prompt}], guideline=GUIDELINE, return_tensors="pt", return_dict=True
@@ -69,4 +63,4 @@ class Gemma:
     # Convert these logits to a probability with softmax
     probabilities = torch.softmax(selected_logits, dim=0)
 
-    return ShieldResponse(score=probabilities[0].item(), prompt=prompt)
+    return ShieldgemmaResponse(score=probabilities[0].item(), prompt=prompt)

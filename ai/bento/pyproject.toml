@@ -8,6 +8,7 @@ dependencies = [
     "accelerate>=1.10.1",
     "bentoml>=1.4.22",
     "bitsandbytes>=0.47.0",
+    "fastapi[standard]>=0.116.1",
     "pillow>=11.3.0",
     "requests>=2.32.5",
     "torch>=2.8.0",

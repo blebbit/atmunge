@@ -9,3 +9,4 @@ csv_export.tgz
 /atmunge
 .ipynb_checkpoints
 .prompt.md
+__pycache__/

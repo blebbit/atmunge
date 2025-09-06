@@ -23,11 +23,12 @@ class PromptGuard2Response(pydantic.BaseModel):
   traffic={"concurrency": 5, "timeout": 10},
 )
 class PromptGuard2:
+  model_path = bentoml.models.HuggingFaceModel(MODEL_ID)
 
   def __init__(self):
 
-    self.model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID, device_map="auto")
-    self.tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    self.model = AutoModelForSequenceClassification.from_pretrained(self.model_path, device_map="auto")
+    self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
 
     print(self.model.config.id2label)
 

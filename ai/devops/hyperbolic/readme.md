@@ -93,16 +93,25 @@ if you need it.
 In any of the subdirs, run
 
 ```sh
-cd ./ai/bento <model>
-uv run bentoml serve
+cd ./ai/bento
+make <model>/serve
 ```
+
+#### Safety Models:
 
 | Model | class | inputs | outputs | notes |
 |:----|-|-|-|
 | shieldgemma  | safety | text  | policy score | custom policy |
 | shieldgemma2 | safety | image | scores | custom policy |
-| llamaguard4  | safety | text & image | boolean | custom policy |
-| safety-3x    | safety | all of the above | mixed | as above |
+| llamaguard4  | safety | multi | boolean | custom policy |
+| promptguard2 | safety | text  | boolean | prompt safety |
+| safety-mesh  | safety | multi | mixed | combo of above |
+
+#### General Models:
+
+| Model | class | inputs | outputs | notes |
+|:----|-|-|-|
+| gemma3       | chat   | multi | policy score | custom policy |
 
 Models to be added
 
